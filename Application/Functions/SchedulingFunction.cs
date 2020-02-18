@@ -1,7 +1,7 @@
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 
-namespace Scheduler.Functions
+namespace Application.Functions
 {
     public static class SchedulingFunction
     {
