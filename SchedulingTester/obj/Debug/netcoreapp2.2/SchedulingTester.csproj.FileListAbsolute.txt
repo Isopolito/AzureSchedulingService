@@ -1,0 +1,11 @@
+C:\src\SchedulingServicePoc\SchedulingTester\bin\Debug\netcoreapp2.2\SchedulingTester.deps.json
+C:\src\SchedulingServicePoc\SchedulingTester\bin\Debug\netcoreapp2.2\SchedulingTester.runtimeconfig.json
+C:\src\SchedulingServicePoc\SchedulingTester\bin\Debug\netcoreapp2.2\SchedulingTester.runtimeconfig.dev.json
+C:\src\SchedulingServicePoc\SchedulingTester\bin\Debug\netcoreapp2.2\SchedulingTester.dll
+C:\src\SchedulingServicePoc\SchedulingTester\obj\Debug\netcoreapp2.2\SchedulingTester.csprojAssemblyReference.cache
+C:\src\SchedulingServicePoc\SchedulingTester\obj\Debug\netcoreapp2.2\SchedulingTester.csproj.CoreCompileInputs.cache
+C:\src\SchedulingServicePoc\SchedulingTester\obj\Debug\netcoreapp2.2\SchedulingTester.AssemblyInfoInputs.cache
+C:\src\SchedulingServicePoc\SchedulingTester\obj\Debug\netcoreapp2.2\SchedulingTester.AssemblyInfo.cs
+C:\src\SchedulingServicePoc\SchedulingTester\bin\Debug\netcoreapp2.2\SchedulingTester.pdb
+C:\src\SchedulingServicePoc\SchedulingTester\obj\Debug\netcoreapp2.2\SchedulingTester.dll
+C:\src\SchedulingServicePoc\SchedulingTester\obj\Debug\netcoreapp2.2\SchedulingTester.pdb

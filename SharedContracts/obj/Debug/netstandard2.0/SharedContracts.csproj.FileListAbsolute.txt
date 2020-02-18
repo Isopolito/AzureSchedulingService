@@ -1,0 +1,9 @@
+C:\src\SchedulingServicePoc\SharedContracts\bin\Debug\netstandard2.0\SharedContracts.deps.json
+C:\src\SchedulingServicePoc\SharedContracts\bin\Debug\netstandard2.0\SharedContracts.dll
+C:\src\SchedulingServicePoc\SharedContracts\bin\Debug\netstandard2.0\SharedContracts.pdb
+C:\src\SchedulingServicePoc\SharedContracts\obj\Debug\netstandard2.0\SharedContracts.csprojAssemblyReference.cache
+C:\src\SchedulingServicePoc\SharedContracts\obj\Debug\netstandard2.0\SharedContracts.csproj.CoreCompileInputs.cache
+C:\src\SchedulingServicePoc\SharedContracts\obj\Debug\netstandard2.0\SharedContracts.AssemblyInfoInputs.cache
+C:\src\SchedulingServicePoc\SharedContracts\obj\Debug\netstandard2.0\SharedContracts.AssemblyInfo.cs
+C:\src\SchedulingServicePoc\SharedContracts\obj\Debug\netstandard2.0\SharedContracts.dll
+C:\src\SchedulingServicePoc\SharedContracts\obj\Debug\netstandard2.0\SharedContracts.pdb

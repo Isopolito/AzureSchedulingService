@@ -1,0 +1,9 @@
+C:\src\SchedulingServicePoc\Domain\bin\Debug\netstandard2.0\Domain.deps.json
+C:\src\SchedulingServicePoc\Domain\bin\Debug\netstandard2.0\Domain.dll
+C:\src\SchedulingServicePoc\Domain\bin\Debug\netstandard2.0\Domain.pdb
+C:\src\SchedulingServicePoc\Domain\obj\Debug\netstandard2.0\Domain.csprojAssemblyReference.cache
+C:\src\SchedulingServicePoc\Domain\obj\Debug\netstandard2.0\Domain.csproj.CoreCompileInputs.cache
+C:\src\SchedulingServicePoc\Domain\obj\Debug\netstandard2.0\Domain.AssemblyInfoInputs.cache
+C:\src\SchedulingServicePoc\Domain\obj\Debug\netstandard2.0\Domain.AssemblyInfo.cs
+C:\src\SchedulingServicePoc\Domain\obj\Debug\netstandard2.0\Domain.dll
+C:\src\SchedulingServicePoc\Domain\obj\Debug\netstandard2.0\Domain.pdb
