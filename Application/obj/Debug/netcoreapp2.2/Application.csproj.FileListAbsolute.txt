@@ -22,3 +22,15 @@ C:\src\SchedulingServicePoc\Application\obj\Debug\netcoreapp2.2\Application.Asse
 C:\src\SchedulingServicePoc\Application\obj\Debug\netcoreapp2.2\Application.AssemblyInfo.cs
 C:\src\SchedulingServicePoc\Application\obj\Debug\netcoreapp2.2\Application.dll
 C:\src\SchedulingServicePoc\Application\obj\Debug\netcoreapp2.2\Application.pdb
+C:\src\SchedulingService\Application\bin\Debug\netcoreapp2.2\appsettings.json
+C:\src\SchedulingService\Application\bin\Debug\netcoreapp2.2\Application.deps.json
+C:\src\SchedulingService\Application\bin\Debug\netcoreapp2.2\Application.runtimeconfig.json
+C:\src\SchedulingService\Application\bin\Debug\netcoreapp2.2\Application.runtimeconfig.dev.json
+C:\src\SchedulingService\Application\bin\Debug\netcoreapp2.2\Application.dll
+C:\src\SchedulingService\Application\bin\Debug\netcoreapp2.2\Application.pdb
+C:\src\SchedulingService\Application\obj\Debug\netcoreapp2.2\Application.csprojAssemblyReference.cache
+C:\src\SchedulingService\Application\obj\Debug\netcoreapp2.2\Application.csproj.CoreCompileInputs.cache
+C:\src\SchedulingService\Application\obj\Debug\netcoreapp2.2\Application.AssemblyInfoInputs.cache
+C:\src\SchedulingService\Application\obj\Debug\netcoreapp2.2\Application.AssemblyInfo.cs
+C:\src\SchedulingService\Application\obj\Debug\netcoreapp2.2\Application.dll
+C:\src\SchedulingService\Application\obj\Debug\netcoreapp2.2\Application.pdb

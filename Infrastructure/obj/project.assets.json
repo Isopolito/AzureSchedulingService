@@ -186,11 +186,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\src\\SchedulingServicePoc\\Infrastructure\\Infrastructure.csproj",
+      "projectUniqueName": "C:\\src\\SchedulingService\\Infrastructure\\Infrastructure.csproj",
       "projectName": "Infrastructure",
-      "projectPath": "C:\\src\\SchedulingServicePoc\\Infrastructure\\Infrastructure.csproj",
+      "projectPath": "C:\\src\\SchedulingService\\Infrastructure\\Infrastructure.csproj",
       "packagesPath": "C:\\Users\\ash\\.nuget\\packages\\",
-      "outputPath": "C:\\src\\SchedulingServicePoc\\Infrastructure\\obj\\",
+      "outputPath": "C:\\src\\SchedulingService\\Infrastructure\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"

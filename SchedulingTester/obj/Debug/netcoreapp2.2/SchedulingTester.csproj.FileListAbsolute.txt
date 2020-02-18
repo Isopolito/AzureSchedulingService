@@ -9,3 +9,14 @@ C:\src\SchedulingServicePoc\SchedulingTester\obj\Debug\netcoreapp2.2\SchedulingT
 C:\src\SchedulingServicePoc\SchedulingTester\bin\Debug\netcoreapp2.2\SchedulingTester.pdb
 C:\src\SchedulingServicePoc\SchedulingTester\obj\Debug\netcoreapp2.2\SchedulingTester.dll
 C:\src\SchedulingServicePoc\SchedulingTester\obj\Debug\netcoreapp2.2\SchedulingTester.pdb
+C:\src\SchedulingService\SchedulingTester\bin\Debug\netcoreapp2.2\SchedulingTester.deps.json
+C:\src\SchedulingService\SchedulingTester\bin\Debug\netcoreapp2.2\SchedulingTester.runtimeconfig.json
+C:\src\SchedulingService\SchedulingTester\bin\Debug\netcoreapp2.2\SchedulingTester.runtimeconfig.dev.json
+C:\src\SchedulingService\SchedulingTester\bin\Debug\netcoreapp2.2\SchedulingTester.dll
+C:\src\SchedulingService\SchedulingTester\bin\Debug\netcoreapp2.2\SchedulingTester.pdb
+C:\src\SchedulingService\SchedulingTester\obj\Debug\netcoreapp2.2\SchedulingTester.csprojAssemblyReference.cache
+C:\src\SchedulingService\SchedulingTester\obj\Debug\netcoreapp2.2\SchedulingTester.csproj.CoreCompileInputs.cache
+C:\src\SchedulingService\SchedulingTester\obj\Debug\netcoreapp2.2\SchedulingTester.AssemblyInfoInputs.cache
+C:\src\SchedulingService\SchedulingTester\obj\Debug\netcoreapp2.2\SchedulingTester.AssemblyInfo.cs
+C:\src\SchedulingService\SchedulingTester\obj\Debug\netcoreapp2.2\SchedulingTester.dll
+C:\src\SchedulingService\SchedulingTester\obj\Debug\netcoreapp2.2\SchedulingTester.pdb

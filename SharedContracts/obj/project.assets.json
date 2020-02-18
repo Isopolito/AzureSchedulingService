@@ -186,11 +186,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\src\\SchedulingServicePoc\\SharedContracts\\SharedContracts.csproj",
+      "projectUniqueName": "C:\\src\\SchedulingService\\SharedContracts\\SharedContracts.csproj",
       "projectName": "SharedContracts",
-      "projectPath": "C:\\src\\SchedulingServicePoc\\SharedContracts\\SharedContracts.csproj",
+      "projectPath": "C:\\src\\SchedulingService\\SharedContracts\\SharedContracts.csproj",
       "packagesPath": "C:\\Users\\ash\\.nuget\\packages\\",
-      "outputPath": "C:\\src\\SchedulingServicePoc\\SharedContracts\\obj\\",
+      "outputPath": "C:\\src\\SchedulingService\\SharedContracts\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"

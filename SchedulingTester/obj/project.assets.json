@@ -6353,11 +6353,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\src\\SchedulingServicePoc\\SchedulingTester\\SchedulingTester.csproj",
+      "projectUniqueName": "C:\\src\\SchedulingService\\SchedulingTester\\SchedulingTester.csproj",
       "projectName": "SchedulingTester",
-      "projectPath": "C:\\src\\SchedulingServicePoc\\SchedulingTester\\SchedulingTester.csproj",
+      "projectPath": "C:\\src\\SchedulingService\\SchedulingTester\\SchedulingTester.csproj",
       "packagesPath": "C:\\Users\\ash\\.nuget\\packages\\",
-      "outputPath": "C:\\src\\SchedulingServicePoc\\SchedulingTester\\obj\\",
+      "outputPath": "C:\\src\\SchedulingService\\SchedulingTester\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"

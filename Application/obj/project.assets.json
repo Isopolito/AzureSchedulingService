@@ -6610,11 +6610,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\src\\SchedulingServicePoc\\Application\\Application.csproj",
+      "projectUniqueName": "C:\\src\\SchedulingService\\Application\\Application.csproj",
       "projectName": "Application",
-      "projectPath": "C:\\src\\SchedulingServicePoc\\Application\\Application.csproj",
+      "projectPath": "C:\\src\\SchedulingService\\Application\\Application.csproj",
       "packagesPath": "C:\\Users\\ash\\.nuget\\packages\\",
-      "outputPath": "C:\\src\\SchedulingServicePoc\\Application\\obj\\",
+      "outputPath": "C:\\src\\SchedulingService\\Application\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
