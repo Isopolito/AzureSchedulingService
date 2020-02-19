@@ -1,7 +1,9 @@
 ﻿using System;
+using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Azure.ServiceBus;
+using Microsoft.Extensions.Configuration;
 
 namespace SchedulingTester
 {
@@ -9,10 +11,17 @@ namespace SchedulingTester
     {
         private static void Main(string[] args)
         {
-            const string connectionStringServiceBus = "Endpoint=sb://austin.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=de5FAUcFSnc9KlXWVpxuGqIH2Dpqjq+kkKocpzvs3os=";
-            const string queueName = "scheduling-inbound";
+            var builder = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
 
-            SendMessage(connectionStringServiceBus, queueName).GetAwaiter().GetResult();
+            var configuration = builder.Build();
+
+            var azureConfig = configuration.GetSection("Azure");
+            var queueName = azureConfig["SchedulingQueueName"];
+            var connectionStringServiceBus = azureConfig["AzureWebJobsServiceBus"];
+
+                SendMessage(connectionStringServiceBus, queueName).GetAwaiter().GetResult();
         }
 
         private static async Task SendMessage(string connectionStringServiceBus, string queueName)
