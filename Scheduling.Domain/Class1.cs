@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Domain
+﻿namespace Scheduling.Domain
 {
     public class Class1
     {
