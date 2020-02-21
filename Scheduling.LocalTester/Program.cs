@@ -11,7 +11,7 @@ namespace Scheduling.LocalTester
 {
     internal class Program
     {
-        private static void Main(string[] args)
+        private static async Task Main(string[] args)
         {
             var builder = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
@@ -23,54 +23,45 @@ namespace Scheduling.LocalTester
             var queueName = azureConfig["SchedulingQueueName"];
             var connectionStringServiceBus = azureConfig["AzureWebJobsServiceBus"];
 
-            SendMessage(connectionStringServiceBus, queueName).GetAwaiter().GetResult();
+            await SendMessage(connectionStringServiceBus, queueName);
         }
 
         private static async Task SendMessage(string connectionStringServiceBus, string queueName)
         {
-            const int numberOfMessages = 5;
-                var queueClient = new QueueClient(connectionStringServiceBus, queueName);
+            var queueClient = new QueueClient(connectionStringServiceBus, queueName);
 
             Console.WriteLine("======================================================");
-            Console.WriteLine("Press any key to send messages....");
+            Console.WriteLine("Press any key to send a message....");
             Console.WriteLine("======================================================");
 
-            Console.ReadKey();
+            while (true)
+            {
+                Console.ReadKey();
+                await SendMessagesToQueueAsync(queueClient);
+            }
 
-            // Send Messages  
-            await SendMessagesToQueueAsync(queueClient, numberOfMessages);
-
-            Console.WriteLine("Done. Press any key to exit.");
-            Console.ReadKey();
-
-            await queueClient.CloseAsync();
+            //await queueClient.CloseAsync();
         }
 
-        private static async Task SendMessagesToQueueAsync(QueueClient queueClient, int numberOfMessages)
+        private static async Task SendMessagesToQueueAsync(QueueClient queueClient)
         {
             try
             {
-                for (var i = 0; i < numberOfMessages; i++)
+                var jobSchedule = new JobSchedule
                 {
-                    var jobSchedule = new JobSchedule
-                    {
-                        Frequency = 99,
-                    };
+                    Frequency = 99,
+                };
 
-                    var scheduleJobMessage = new ScheduleJobMessage
-                       {
-                        QueueName = "scheduling-assessments",
-                        Schedule = jobSchedule,
-                        JobUid = Guid.NewGuid(),
-                    };
-                    var messageBody = JsonConvert.SerializeObject(scheduleJobMessage);
-                    var message = new Message(Encoding.UTF8.GetBytes(messageBody));
+                var scheduleJobMessage = new ScheduleJobMessage
+                {
+                    SubscriptionId = "scheduling-pulseassessments-email",
+                    JobUid = Guid.NewGuid(),
+                    Schedule = jobSchedule,
+                };
+                var messageBody = JsonConvert.SerializeObject(scheduleJobMessage);
+                var message = new Message(Encoding.UTF8.GetBytes(messageBody));
 
-                    Console.WriteLine($"Sending message to queue: {messageBody}");
-
-                    // Send the message to the queue  
-                    await queueClient.SendAsync(message);
-                }
+                await queueClient.SendAsync(message);
             }
             catch (Exception exception)
             {

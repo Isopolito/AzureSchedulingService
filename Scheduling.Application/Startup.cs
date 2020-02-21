@@ -3,7 +3,7 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Scheduling.Application.Jobs;
+using Scheduling.Application.Scheduling;
 using Scheduling.Application.ServiceBus;
 
 namespace Scheduling.Application

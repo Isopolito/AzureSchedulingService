@@ -1,6 +1,6 @@
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
-using Scheduling.Application.Jobs;
+using Scheduling.Application.Scheduling;
 
 namespace Scheduling.Application.Functions
 {
@@ -14,7 +14,7 @@ namespace Scheduling.Application.Functions
         }
 
         [NoAutomaticTrigger]
-        public void InitiateScheduler(ILogger logger)
+        public void InitiateScheduler(ILogger<InitiateSchedulerFunction> logger)
         {
             logger.LogInformation("Started scheduler");
             schedulingActions.StartScheduler();

@@ -1,59 +1,77 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Azure.ServiceBus;
+using Microsoft.Azure.ServiceBus.Management;
 using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json;
-using Scheduling.SharedPackage;
+using Microsoft.Extensions.Logging;
+using Scheduling.Application.Constants;
 
 namespace Scheduling.Application.ServiceBus
 {
     public class ServiceBus : IServiceBus
     {
-        private readonly Dictionary<string,QueueClient> queueClients;
-        private readonly string serviceBusConnString;
+        private readonly ILogger logger;
+        private readonly string topicName;
+        private readonly HashSet<string> subscriptionsThatHaveBeenSetup; // This service should be registered as a singleton for this to help
+        private readonly TopicClient topicClient;
+        private readonly ManagementClient managementClient;
 
-        public ServiceBus()
+        public ServiceBus(IConfiguration configuration, ILogger<ServiceBus> logger)
         {
-            queueClients = new Dictionary<string, QueueClient>();
+            this.logger = logger;
+            subscriptionsThatHaveBeenSetup = new HashSet<string>();
 
             // TODO: Do this so the value comes from the cloud config when not running local
-            var builder = new ConfigurationBuilder()
-                     .SetBasePath(Directory.GetCurrentDirectory())
-                     .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
-            var configuration = builder.Build();
-            var azureConfig = configuration.GetSection("Azure");
+            var serviceBusConnString = configuration.GetValue<string>("AzureWebJobsServiceBus");
+            topicName = configuration.GetValue<string>("TopicName");
 
-            serviceBusConnString = azureConfig["AzureWebJobsServiceBus"];
+            topicClient = new TopicClient(serviceBusConnString, topicName);
+            managementClient = new ManagementClient(serviceBusConnString);
         }
 
-        public async Task PublishEvent(string queueName, string jobUid)
-        {   
-            var queueClient = GetQueueClient(queueName);
-            var executeJobMessage = new ExecuteJobMessage
-            {
-                JobUid = Guid.NewGuid(),
-            };
-            var messageBody = JsonConvert.SerializeObject(executeJobMessage);
-            var message = new Message(Encoding.UTF8.GetBytes(messageBody));
-
-            Console.WriteLine($"Sending message to queue: {messageBody}");
-
-            // Send the message to the queue  
-            await queueClient.SendAsync(message);
-        }
-
-        private QueueClient GetQueueClient(string queueName)
+        public async Task PublishEventToTopic(string subscriptionId, string serializedMessageBody)
         {
-            if (!queueClients.ContainsKey(queueName))
+            var message = new Message(Encoding.UTF8.GetBytes(serializedMessageBody))
             {
-                queueClients[queueName] = new QueueClient(serviceBusConnString, queueName);
-                return queueClients[queueName];
-            }
+                UserProperties = { ["SubscriptionId"] = subscriptionId }
+            };
 
-            return queueClients[queueName];
+            await topicClient.SendAsync(message);
         }
+
+        public async Task EnsureSubscriptionIsSetup(string subscriptionId)
+        {
+            try
+            {
+                if (!await managementClient.SubscriptionExistsAsync(topicName, subscriptionId))
+                {
+                    await managementClient.CreateSubscriptionAsync(new SubscriptionDescription(topicName, subscriptionId), MakeRule(subscriptionId));
+                    subscriptionsThatHaveBeenSetup.Add(subscriptionId);
+                }
+                else if (!subscriptionsThatHaveBeenSetup.Contains(subscriptionId))
+                {
+                    // The hash lookup avoids a call to get rules every time this method is called
+                    subscriptionsThatHaveBeenSetup.Add(subscriptionId);
+
+                    // The default rule is to accept everything, so delete it and replace it with the subscription filter
+                    await managementClient.DeleteRuleAsync(topicName, subscriptionId, "$Default");
+                    await managementClient.CreateRuleAsync(topicName, subscriptionId, MakeRule(subscriptionId));
+                }
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, $"Error setting up subscription for subscriptionId: {subscriptionId}");
+                throw;
+            }
+        }
+
+        private static RuleDescription MakeRule(string subscriptionId)
+            => new RuleDescription
+              {
+                  Filter = new SqlFilter($"{JobsConstants.SubscriptionId} = '{subscriptionId}'"),
+              };
     }
 }

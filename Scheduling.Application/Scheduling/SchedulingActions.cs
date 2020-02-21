@@ -5,7 +5,7 @@ using Quartz.Impl;
 using Scheduling.Application.Constants;
 using Scheduling.SharedPackage;
 
-namespace Scheduling.Application.Jobs
+namespace Scheduling.Application.Scheduling
 {
     public class SchedulingActions : ISchedulingActions
     {
@@ -34,11 +34,10 @@ namespace Scheduling.Application.Jobs
 
             // TODO: Assert Guid is not empty in message, log error and bail if so
 
-            // define the job and tie it to our HelloJob class
             var job = JobBuilder.Create<ScheduledJob>()
                 .WithIdentity(JobsConstants.IdentityName, JobsConstants.StandardGroup)
                 .UsingJobData(JobsConstants.JobUid, scheduleJobMessage.JobUid.ToString())
-                .UsingJobData(JobsConstants.QueueName, scheduleJobMessage.QueueName)
+                .UsingJobData(JobsConstants.SubscriptionId, scheduleJobMessage.SubscriptionId)
                 .Build();
 
             // Trigger the job to run now, and then every 40 seconds

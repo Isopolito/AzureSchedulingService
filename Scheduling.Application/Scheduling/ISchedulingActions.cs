@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Scheduling.SharedPackage;
 
-namespace Scheduling.Application.Jobs
+namespace Scheduling.Application.Scheduling
 {
     public interface ISchedulingActions
     {
