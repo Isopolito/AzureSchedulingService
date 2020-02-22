@@ -1,13 +1,13 @@
-﻿using System.Threading.Tasks;
-using Scheduling.SharedPackage;
+﻿using System.Threading;
+using System.Threading.Tasks;
+using Scheduling.SharedPackage.Messages;
 
 namespace Scheduling.Application.Scheduling
 {
     public interface ISchedulingActions
     {
-        Task StartScheduler();
-        Task AddJob(ScheduleJobMessage scheduleJobMessage);
-        Task DeleteJob(ScheduleJobMessage scheduleJobMessage);
-        Task UpdateJob(ScheduleJobMessage scheduleJobMessage);
+        Task StartScheduler(CancellationToken ct);
+        Task AddOrUpdateJob(ScheduleJobMessage scheduleJobMessage, CancellationToken ct);
+        Task DeleteJob(DeleteJobMessage deleteJobMessage, CancellationToken ct);
     }
 }

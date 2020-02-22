@@ -1,6 +1,7 @@
 ﻿using System;
+using Scheduling.SharedPackage.Scheduling;
 
-namespace Scheduling.SharedPackage
+namespace Scheduling.SharedPackage.Messages
 {
     public class ScheduleJobMessage
     {

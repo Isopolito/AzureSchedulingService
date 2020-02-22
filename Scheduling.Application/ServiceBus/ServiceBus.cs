@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Azure.ServiceBus;
@@ -13,7 +12,7 @@ namespace Scheduling.Application.ServiceBus
 {
     public class ServiceBus : IServiceBus
     {
-        private readonly ILogger logger;
+        private readonly ILogger<ServiceBus> logger;
         private readonly string topicName;
         private readonly HashSet<string> subscriptionsThatHaveBeenSetup; // This service should be registered as a singleton for this to help
         private readonly TopicClient topicClient;
@@ -53,10 +52,10 @@ namespace Scheduling.Application.ServiceBus
                 }
                 else if (!subscriptionsThatHaveBeenSetup.Contains(subscriptionId))
                 {
-                    // The hash lookup avoids a call to get rules every time this method is called
+                    // The hash lookup works only when this class is registered in DI as a singleton
                     subscriptionsThatHaveBeenSetup.Add(subscriptionId);
 
-                    // The default rule is to accept everything, so delete it and replace it with the subscription filter
+                    // The default rule is to accept everything, so delete it and replace it with the subscriptionId filter
                     await managementClient.DeleteRuleAsync(topicName, subscriptionId, "$Default");
                     await managementClient.CreateRuleAsync(topicName, subscriptionId, MakeRule(subscriptionId));
                 }
@@ -71,7 +70,7 @@ namespace Scheduling.Application.ServiceBus
         private static RuleDescription MakeRule(string subscriptionId)
             => new RuleDescription
               {
-                  Filter = new SqlFilter($"{JobsConstants.SubscriptionId} = '{subscriptionId}'"),
+                  Filter = new SqlFilter($"{JobConstants.SubscriptionId} = '{subscriptionId}'"),
               };
     }
 }

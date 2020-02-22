@@ -1,34 +1,29 @@
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using Scheduling.Application.ServiceBus;
-using Scheduling.SharedPackage;
+using Scheduling.Application.Scheduling;
+using Scheduling.SharedPackage.Messages;
 
 namespace Scheduling.Application.Functions
 {
     public class InboundMessageFunction
     {
-        private readonly IServiceBus serviceBus;
+        private readonly ISchedulingActions schedulingActions;
 
-        public InboundMessageFunction(IServiceBus serviceBus)
+        public InboundMessageFunction(ISchedulingActions schedulingActions)
         {
-            this.serviceBus = serviceBus;
+            this.schedulingActions = schedulingActions;
         }
 
         // TODO: Handle dead letters
-        public async Task ScheduleInboundJobs([ServiceBusTrigger("scheduling-add")] Message message, ILogger<InboundMessageFunction> logger)
+        public async Task ScheduleInboundJobs([ServiceBusTrigger("scheduling-add")] Message message, ILogger logger, CancellationToken ct)
         {
             var job = JsonConvert.DeserializeObject<ScheduleJobMessage>(Encoding.UTF8.GetString(message.Body));
-            await serviceBus.EnsureSubscriptionIsSetup(job.SubscriptionId);
-
-            var executeJobMessage = new ExecuteJobMessage
-            {
-                JobUid = job.JobUid,
-            };
-            await serviceBus.PublishEventToTopic(job.SubscriptionId, JsonConvert.SerializeObject(executeJobMessage));
+            await schedulingActions.AddOrUpdateJob(job, ct);
         }
     }
 }

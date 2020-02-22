@@ -1,3 +1,4 @@
+using System.Threading;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Scheduling.Application.Scheduling;
@@ -14,10 +15,10 @@ namespace Scheduling.Application.Functions
         }
 
         [NoAutomaticTrigger]
-        public void InitiateScheduler(ILogger<InitiateSchedulerFunction> logger)
+        public void InitiateScheduler(ILogger logger, CancellationToken ct)
         {
             logger.LogInformation("Started scheduler");
-            schedulingActions.StartScheduler();
+            schedulingActions.StartScheduler(ct);
         }
     }
 }

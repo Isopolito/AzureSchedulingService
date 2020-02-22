@@ -5,7 +5,9 @@ using System.Threading.Tasks;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
-using Scheduling.SharedPackage;
+using Scheduling.SharedPackage.Enumerations;
+using Scheduling.SharedPackage.Messages;
+using Scheduling.SharedPackage.Scheduling;
 
 namespace Scheduling.LocalTester
 {
@@ -49,12 +51,15 @@ namespace Scheduling.LocalTester
             {
                 var jobSchedule = new JobSchedule
                 {
-                    Frequency = 99,
+                    RepeatCount = 99,
+                    StartAt = DateTime.Now,
+                    EndAt = DateTime.Now.AddMinutes(15),
+                    ExecutionInterval = new Interval { IntervalPeriod = IntervalPeriods.Minutes, IntervalValue = 1 }
                 };
 
                 var scheduleJobMessage = new ScheduleJobMessage
                 {
-                    SubscriptionId = "scheduling-pulseassessments-email",
+                    SubscriptionId = "scheduling-testsubscription-1",
                     JobUid = Guid.NewGuid(),
                     Schedule = jobSchedule,
                 };

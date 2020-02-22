@@ -1,65 +1,156 @@
-﻿using System.Collections.Specialized;
+﻿using System;
+using System.Collections.Specialized;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using Quartz;
 using Quartz.Impl;
 using Scheduling.Application.Constants;
-using Scheduling.SharedPackage;
+using Scheduling.SharedPackage.Enumerations;
+using Scheduling.SharedPackage.Messages;
+using Scheduling.SharedPackage.Scheduling;
 
 namespace Scheduling.Application.Scheduling
 {
     public class SchedulingActions : ISchedulingActions
     {
+        private readonly ILogger<SchedulingActions> logger;
         private readonly StdSchedulerFactory factory;
         private IScheduler scheduler;
 
-        public SchedulingActions()
+        public SchedulingActions(ILogger<SchedulingActions> logger, IConfiguration configuration)
         {
-            var props = new NameValueCollection
+            try
             {
-                { "quartz.serializer.type", "binary" }
-            };
+                this.logger = logger;
 
-            factory = new StdSchedulerFactory(props);
+                var quartzSettingsDict = configuration.GetSection("Quartz")
+                    .GetChildren()
+                    .ToDictionary(x => x.Key, x => x.Value);
+
+                var quartzSettings = new NameValueCollection();
+                foreach (var (key, value) in quartzSettingsDict) quartzSettings.Add(key, value);
+                factory = new StdSchedulerFactory(quartzSettings);
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, "Error starting scheduler");
+            }
         }
 
-        public async Task StartScheduler()
+        public async Task StartScheduler(CancellationToken ct)
         {
-            scheduler = await factory.GetScheduler();
-            await scheduler.Start();
+            try
+            {
+                scheduler = await factory.GetScheduler(ct);
+                await scheduler.Start(ct);
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, "Error starting scheduler");
+            }
         }
 
-        public async Task AddJob(ScheduleJobMessage scheduleJobMessage)
+        public async Task DeleteJob(DeleteJobMessage deleteJobMessage, CancellationToken ct)
         {
-            if (scheduler == null) await StartScheduler();
+            if (scheduler == null) await StartScheduler(ct);
+            await RemoveJobIfAlreadyExists(deleteJobMessage.JobUid, ct);
+        }
 
-            // TODO: Assert Guid is not empty in message, log error and bail if so
+        public async Task AddOrUpdateJob(ScheduleJobMessage scheduleJobMessage, CancellationToken ct)
+        {
+            try
+            {
+                if (!IsInputValid(scheduleJobMessage)) return;
 
-            var job = JobBuilder.Create<ScheduledJob>()
-                .WithIdentity(JobsConstants.IdentityName, JobsConstants.StandardGroup)
-                .UsingJobData(JobsConstants.JobUid, scheduleJobMessage.JobUid.ToString())
-                .UsingJobData(JobsConstants.SubscriptionId, scheduleJobMessage.SubscriptionId)
-                .Build();
+                if (scheduler == null) await StartScheduler(ct);
 
-            // Trigger the job to run now, and then every 40 seconds
+                await RemoveJobIfAlreadyExists(scheduleJobMessage.JobUid, ct);
+
+                var job = JobBuilder.Create<ScheduledJob>()
+                    .WithIdentity(scheduleJobMessage.JobUid.ToString(), JobConstants.StandardJobGroup)
+                    .UsingJobData(JobConstants.JobUid, scheduleJobMessage.JobUid.ToString())
+                    .UsingJobData(JobConstants.SubscriptionId, scheduleJobMessage.SubscriptionId)
+                    .Build();
+
+                var trigger = BuildTrigger(scheduleJobMessage.Schedule);
+
+                await scheduler.ScheduleJob(job, trigger, ct);
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, $"Error adding job. ScheduleJobMessage: {JsonConvert.SerializeObject(scheduleJobMessage)}");
+            }
+        }
+
+        private async Task RemoveJobIfAlreadyExists(Guid jobUid, CancellationToken ct)
+        {
+            try
+            {
+                var jobKey = new JobKey(jobUid.ToString(), JobConstants.StandardJobGroup);
+                var jobExists = await scheduler.CheckExists(jobKey, ct);
+                if (jobExists)
+                {
+                    await scheduler.DeleteJob(jobKey, ct);
+                }
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, $"Error deleting scheduled job, JobUid: {jobUid}");
+            }
+        }
+
+        private bool IsInputValid(ScheduleJobMessage scheduleJobMessage)
+        {
+            if (scheduleJobMessage.Schedule?.ExecutionInterval == null)
+            {
+                logger.LogError($"Schedule configuration, including ExecutionInterval, is required. Message: {JsonConvert.SerializeObject(scheduleJobMessage)}");
+                return false;
+            }
+
+            if (scheduleJobMessage.JobUid == Guid.Empty || string.IsNullOrEmpty(scheduleJobMessage.SubscriptionId))
+            {
+                logger.LogError($"JobUid and SubscriptionId are required for scheduling a job. Message: {JsonConvert.SerializeObject(scheduleJobMessage)}");
+                return false;
+            }
+
+            return true;
+        }
+
+        private static ITrigger BuildTrigger(JobSchedule schedule)
+        {
             var trigger = TriggerBuilder.Create()
-                .WithIdentity("myTrigger", "group1")
-                .StartNow()
-                .WithSimpleSchedule(x => x
-                    .WithIntervalInSeconds(40)
-                    .RepeatForever())
-            .Build();
+                .WithIdentity(JobConstants.StandardTrigger, JobConstants.StandardTriggerGroup)
+                .StartAt(schedule.StartAt);
 
-            await scheduler.ScheduleJob(job, trigger);
-        }
+            if (schedule.EndAt.HasValue)
+            {
+                trigger.EndAt(schedule.EndAt);
+            }
 
-        public Task DeleteJob(ScheduleJobMessage scheduleJobMessage)
-        {
-            throw new System.NotImplementedException();
-        }
+            var simpleSchedule = SimpleScheduleBuilder.Create();
+            if (schedule.RepeatCount > 0)
+            {
+                simpleSchedule.WithRepeatCount(schedule.RepeatCount);
+            }
 
-        public Task UpdateJob(ScheduleJobMessage scheduleJobMessage)
-        {
-            throw new System.NotImplementedException();
+            var intervalMultiplierInMinutes = 1;
+            if (schedule.ExecutionInterval.IntervalPeriod == IntervalPeriods.Hours)
+            {
+                intervalMultiplierInMinutes = 60;
+            }
+            else if (schedule.ExecutionInterval.IntervalPeriod == IntervalPeriods.Days)
+            {
+                intervalMultiplierInMinutes = 60 * 24;
+            }
+
+            simpleSchedule.WithIntervalInMinutes(schedule.ExecutionInterval.IntervalValue * intervalMultiplierInMinutes);
+            trigger.WithSchedule(simpleSchedule);
+
+            return trigger.Build();
         }
     }
 }

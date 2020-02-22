@@ -10,6 +10,9 @@ namespace Scheduling.Application
 {
     public class Startup
     {
+        // TODO: Get health checks in place
+        // TODO: Get Application Insights in place
+        // TODO: Get Loggly in place
         static async Task Main(string[] args)
         {
             var host = new HostBuilder()

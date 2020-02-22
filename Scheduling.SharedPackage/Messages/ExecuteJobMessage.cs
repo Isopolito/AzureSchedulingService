@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace Scheduling.SharedPackage
+namespace Scheduling.SharedPackage.Messages
 {
     public class ExecuteJobMessage
     {
