@@ -8,7 +8,10 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Quartz;
 using Quartz.Impl;
+using Quartz.Logging;
+using Quartz.Spi;
 using Scheduling.Application.Constants;
+using Scheduling.Application.Logging;
 using Scheduling.SharedPackage.Enumerations;
 using Scheduling.SharedPackage.Messages;
 using Scheduling.SharedPackage.Scheduling;
@@ -18,7 +21,7 @@ namespace Scheduling.Application.Scheduling
     public class SchedulingActions : ISchedulingActions
     {
         private readonly ILogger<SchedulingActions> logger;
-        private readonly StdSchedulerFactory factory;
+        private readonly StdSchedulerFactory standardFactory;
         private IScheduler scheduler;
 
         public SchedulingActions(ILogger<SchedulingActions> logger, IConfiguration configuration)
@@ -33,7 +36,7 @@ namespace Scheduling.Application.Scheduling
 
                 var quartzSettings = new NameValueCollection();
                 foreach (var (key, value) in quartzSettingsDict) quartzSettings.Add(key, value);
-                factory = new StdSchedulerFactory(quartzSettings);
+                standardFactory = new StdSchedulerFactory(quartzSettings);
             }
             catch (Exception e)
             {
@@ -41,11 +44,13 @@ namespace Scheduling.Application.Scheduling
             }
         }
 
-        public async Task StartScheduler(CancellationToken ct)
+        public async Task StartScheduler(IJobFactory jobFactory, CancellationToken ct)
         {
             try
             {
-                scheduler = await factory.GetScheduler(ct);
+                LogProvider.SetCurrentLogProvider(new QuartzLoggingProvider(logger));
+                scheduler = await standardFactory.GetScheduler(ct);
+                scheduler.JobFactory = jobFactory;
                 await scheduler.Start(ct);
             }
             catch (Exception e)
@@ -56,8 +61,7 @@ namespace Scheduling.Application.Scheduling
 
         public async Task DeleteJob(DeleteJobMessage deleteJobMessage, CancellationToken ct)
         {
-            if (scheduler == null) await StartScheduler(ct);
-            await RemoveJobIfAlreadyExists(deleteJobMessage.JobUid, ct);
+            await RemoveJobIfAlreadyExists(deleteJobMessage.JobUid, deleteJobMessage.SubscriptionId, ct);
         }
 
         public async Task AddOrUpdateJob(ScheduleJobMessage scheduleJobMessage, CancellationToken ct)
@@ -66,17 +70,15 @@ namespace Scheduling.Application.Scheduling
             {
                 if (!IsInputValid(scheduleJobMessage)) return;
 
-                if (scheduler == null) await StartScheduler(ct);
-
-                await RemoveJobIfAlreadyExists(scheduleJobMessage.JobUid, ct);
+                await RemoveJobIfAlreadyExists(scheduleJobMessage.JobUid, scheduleJobMessage.SubscriptionId, ct);
 
                 var job = JobBuilder.Create<ScheduledJob>()
-                    .WithIdentity(scheduleJobMessage.JobUid.ToString(), SchedulingConstants.StandardJobGroup)
+                    .WithIdentity(scheduleJobMessage.JobUid.ToString(), scheduleJobMessage.SubscriptionId)
                     .UsingJobData(SchedulingConstants.JobUid, scheduleJobMessage.JobUid.ToString())
                     .UsingJobData(SchedulingConstants.SubscriptionId, scheduleJobMessage.SubscriptionId)
                     .Build();
 
-                var trigger = BuildTrigger(scheduleJobMessage.Schedule);
+                var trigger = BuildTrigger(scheduleJobMessage.JobUid, scheduleJobMessage.SubscriptionId, scheduleJobMessage.Schedule);
 
                 await scheduler.ScheduleJob(job, trigger, ct);
             }
@@ -86,11 +88,11 @@ namespace Scheduling.Application.Scheduling
             }
         }
 
-        private async Task RemoveJobIfAlreadyExists(Guid jobUid, CancellationToken ct)
+        private async Task RemoveJobIfAlreadyExists(Guid jobUid, string subscriptionId, CancellationToken ct)
         {
             try
             {
-                var jobKey = new JobKey(jobUid.ToString(), SchedulingConstants.StandardJobGroup);
+                var jobKey = new JobKey(jobUid.ToString(), subscriptionId);
                 var jobExists = await scheduler.CheckExists(jobKey, ct);
                 if (jobExists)
                 {
@@ -120,10 +122,10 @@ namespace Scheduling.Application.Scheduling
             return true;
         }
 
-        private static ITrigger BuildTrigger(JobSchedule schedule)
+        private static ITrigger BuildTrigger(Guid jobUid, string subscriptionId, JobSchedule schedule)
         {
             var trigger = TriggerBuilder.Create()
-                .WithIdentity(SchedulingConstants.StandardTrigger, SchedulingConstants.StandardTriggerGroup)
+                .WithIdentity(jobUid.ToString(), subscriptionId)
                 .StartAt(schedule.StartAt);
 
             if (schedule.EndAt.HasValue)

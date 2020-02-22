@@ -1,3 +1,4 @@
+using System.Drawing;
 using System.Text;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
@@ -13,8 +14,9 @@ namespace Scheduling.Application.Functions
         // This is just for testing locally
         public static void TestConsumer([ServiceBusTrigger("scheduling-execute", "scheduling-testsubscription-1")] Message message, ILogger logger)
         {
-            var executeJob = JsonConvert.DeserializeObject<ExecuteJobMessage>(Encoding.UTF8.GetString(message.Body));
-            logger.LogInformation($"[{message.CorrelationId}] Received execute job, message: ${message.Body}");
+            var body = Encoding.UTF8.GetString(message.Body);
+            var executeJob = JsonConvert.DeserializeObject<ExecuteJobMessage>(body);
+            logger.LogInformation($"\n***==> Received execute job, message: ${body}\n");
         }
     }
 }

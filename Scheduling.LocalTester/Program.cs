@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Configuration;
@@ -36,16 +37,19 @@ namespace Scheduling.LocalTester
             Console.WriteLine("Press any key to send a message....");
             Console.WriteLine("======================================================");
 
+            var guid = Guid.NewGuid();
             while (true)
             {
-                Console.ReadKey();
-                await SendMessagesToQueueAsync(queueClient);
+                //Console.ReadKey();
+
+                Thread.Sleep(1);
+                await SendMessagesToQueueAsync(queueClient, guid);
             }
 
             //await queueClient.CloseAsync();
         }
 
-        private static async Task SendMessagesToQueueAsync(QueueClient queueClient)
+        private static async Task SendMessagesToQueueAsync(QueueClient queueClient, Guid guid)
         {
             try
             {
@@ -60,7 +64,7 @@ namespace Scheduling.LocalTester
                 var scheduleJobMessage = new ScheduleJobMessage
                 {
                     SubscriptionId = "scheduling-testsubscription-1",
-                    JobUid = Guid.NewGuid(),
+                    JobUid = guid,
                     Schedule = jobSchedule,
                 };
                 var messageBody = JsonConvert.SerializeObject(scheduleJobMessage);

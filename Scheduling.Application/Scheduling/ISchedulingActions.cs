@@ -1,12 +1,13 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
+using Quartz.Spi;
 using Scheduling.SharedPackage.Messages;
 
 namespace Scheduling.Application.Scheduling
 {
     public interface ISchedulingActions
     {
-        Task StartScheduler(CancellationToken ct);
+        Task StartScheduler(IJobFactory jobFactory, CancellationToken ct);
         Task AddOrUpdateJob(ScheduleJobMessage scheduleJobMessage, CancellationToken ct);
         Task DeleteJob(DeleteJobMessage deleteJobMessage, CancellationToken ct);
     }

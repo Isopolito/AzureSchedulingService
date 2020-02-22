@@ -45,16 +45,16 @@ namespace Scheduling.Application.ServiceBus
         {
             try
             {
+                // The hash lookup works only when this class is registered in DI as a singleton
+                if (subscriptionsThatHaveBeenSetup.Contains(subscriptionId)) return;
+
+                subscriptionsThatHaveBeenSetup.Add(subscriptionId);
                 if (!await managementClient.SubscriptionExistsAsync(topicName, subscriptionId))
                 {
                     await managementClient.CreateSubscriptionAsync(new SubscriptionDescription(topicName, subscriptionId), MakeRule(subscriptionId));
-                    subscriptionsThatHaveBeenSetup.Add(subscriptionId);
                 }
-                else if (!subscriptionsThatHaveBeenSetup.Contains(subscriptionId))
+                else
                 {
-                    // The hash lookup works only when this class is registered in DI as a singleton
-                    subscriptionsThatHaveBeenSetup.Add(subscriptionId);
-
                     // The default rule is to accept everything, so delete it and replace it with the subscriptionId filter
                     await managementClient.DeleteRuleAsync(topicName, subscriptionId, "$Default");
                     await managementClient.CreateRuleAsync(topicName, subscriptionId, MakeRule(subscriptionId));

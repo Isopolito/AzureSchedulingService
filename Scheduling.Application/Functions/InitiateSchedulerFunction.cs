@@ -1,6 +1,7 @@
 using System.Threading;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
+using Quartz.Spi;
 using Scheduling.Application.Scheduling;
 
 namespace Scheduling.Application.Functions
@@ -15,10 +16,10 @@ namespace Scheduling.Application.Functions
         }
 
         [NoAutomaticTrigger]
-        public void InitiateScheduler(ILogger logger, CancellationToken ct)
+        public void InitiateScheduler(ILogger logger, IJobFactory jobFactory, CancellationToken ct)
         {
-            logger.LogInformation("Started scheduler");
-            schedulingActions.StartScheduler(ct);
+            //logger.LogInformation("Started scheduler");
+            schedulingActions.StartScheduler(jobFactory, ct);
         }
     }
 }
