@@ -1,6 +1,6 @@
 ﻿namespace Scheduling.Application.Constants
 {
-    public static class JobConstants
+    public static class SchedulingConstants
     {
         public const string JobUid = "JobUid";
         public const string SubscriptionId = "SubscriptionId";

@@ -71,9 +71,9 @@ namespace Scheduling.Application.Scheduling
                 await RemoveJobIfAlreadyExists(scheduleJobMessage.JobUid, ct);
 
                 var job = JobBuilder.Create<ScheduledJob>()
-                    .WithIdentity(scheduleJobMessage.JobUid.ToString(), JobConstants.StandardJobGroup)
-                    .UsingJobData(JobConstants.JobUid, scheduleJobMessage.JobUid.ToString())
-                    .UsingJobData(JobConstants.SubscriptionId, scheduleJobMessage.SubscriptionId)
+                    .WithIdentity(scheduleJobMessage.JobUid.ToString(), SchedulingConstants.StandardJobGroup)
+                    .UsingJobData(SchedulingConstants.JobUid, scheduleJobMessage.JobUid.ToString())
+                    .UsingJobData(SchedulingConstants.SubscriptionId, scheduleJobMessage.SubscriptionId)
                     .Build();
 
                 var trigger = BuildTrigger(scheduleJobMessage.Schedule);
@@ -90,7 +90,7 @@ namespace Scheduling.Application.Scheduling
         {
             try
             {
-                var jobKey = new JobKey(jobUid.ToString(), JobConstants.StandardJobGroup);
+                var jobKey = new JobKey(jobUid.ToString(), SchedulingConstants.StandardJobGroup);
                 var jobExists = await scheduler.CheckExists(jobKey, ct);
                 if (jobExists)
                 {
@@ -123,7 +123,7 @@ namespace Scheduling.Application.Scheduling
         private static ITrigger BuildTrigger(JobSchedule schedule)
         {
             var trigger = TriggerBuilder.Create()
-                .WithIdentity(JobConstants.StandardTrigger, JobConstants.StandardTriggerGroup)
+                .WithIdentity(SchedulingConstants.StandardTrigger, SchedulingConstants.StandardTriggerGroup)
                 .StartAt(schedule.StartAt);
 
             if (schedule.EndAt.HasValue)

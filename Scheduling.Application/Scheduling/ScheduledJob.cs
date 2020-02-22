@@ -26,25 +26,22 @@ namespace Scheduling.Application.Scheduling
             try
             {
                 var dataMap = context.JobDetail.JobDataMap;
-                subscriptionId = dataMap.GetString(JobConstants.SubscriptionId);
-                jobUid = dataMap.GetString(JobConstants.JobUid);
+                subscriptionId = dataMap.GetString(SchedulingConstants.SubscriptionId);
+                jobUid = dataMap.GetString(SchedulingConstants.JobUid);
 
-                await serviceBus.EnsureSubscriptionIsSetup(subscriptionId);
                 var executeJobMessage = new ExecuteJobMessage
                 {
                     JobUid = Guid.Parse(jobUid),
                 };
-                await serviceBus.PublishEventToTopic(subscriptionId, JsonConvert.SerializeObject(executeJobMessage));
 
-                //var key = context.JobDetail.Key;
-                //await Console.Error.WriteLineAsync("Instance " + key + " of DumbJob says: " + jobSays + ", and val is: " + myFloatValue);
+                await serviceBus.EnsureSubscriptionIsSetup(subscriptionId);
+                await serviceBus.PublishEventToTopic(subscriptionId, JsonConvert.SerializeObject(executeJobMessage));
             }
             catch (Exception e)
             {
                 logger.LogError(e, $"Unable to execute job--jobUid: {jobUid}, subscriptionId: {subscriptionId}");
                 throw;
             }
-
         }
     }
 }

@@ -70,7 +70,7 @@ namespace Scheduling.Application.ServiceBus
         private static RuleDescription MakeRule(string subscriptionId)
             => new RuleDescription
               {
-                  Filter = new SqlFilter($"{JobConstants.SubscriptionId} = '{subscriptionId}'"),
+                  Filter = new SqlFilter($"{SchedulingConstants.SubscriptionId} = '{subscriptionId}'"),
               };
     }
 }
