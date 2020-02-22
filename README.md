@@ -5,7 +5,15 @@ Generic azure cloud scheduling service
 NOTE: You will need to add appsettings.json to Application project with the following daa:
 ```javascript
 {
+    "TopicName": "scheduling-execute",
     "AzureWebJobsServiceBus": "Service bus config string",
+      "Quartz": {
+      "quartz.threadPool.type": "Quartz.Simpl.SimpleThreadPool, Quartz",
+      "quartz.threadPool.threadCount": "10",
+      "quartz.threadPool.threadPriority": "Normal",
+      "quartz.jobStore.misfireThreshold": "60000"
+      ...
+      }
 }
 ```
 
