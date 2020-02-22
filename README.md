@@ -2,7 +2,7 @@
 Generic azure cloud scheduling service
 
 
-NOTE: You will need to add appsettings.json to Application project with the following daa:
+NOTE: You will need to add appsettings.json to Application project with the following data:
 ```javascript
 {
     "TopicName": "scheduling-execute",
