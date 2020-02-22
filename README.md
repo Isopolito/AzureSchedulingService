@@ -1,11 +1,11 @@
 # AzureSchedulingService
-Generic azure cloud scheduling service
+Generic azure cloud scheduling service user quartz.net
 
 
 NOTE: You will need to add appsettings.json to Application project with the following data:
 ```javascript
 {
-    "TopicName": "scheduling-execute",
+    "TopicName": "whatever",
     "AzureWebJobsServiceBus": "Service bus config string",
       "Quartz": {
       "quartz.threadPool.type": "Quartz.Simpl.SimpleThreadPool, Quartz",
@@ -23,7 +23,7 @@ and an appsettings.json to the testing project that has the following shape:
 {
   "Azure":  {
     "AzureWebJobsServiceBus": "Service bus config string", 
-    "SchedulingQueueName":  "scheduling-inbound"
+    "SchedulingQueueName":  "whatever"
   } 
 }
 ```
