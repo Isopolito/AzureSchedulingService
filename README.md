@@ -1,5 +1,5 @@
 # AzureSchedulingService
-Generic azure cloud scheduling service user quartz.net
+A domain agnostic azure cloud scheduling service using quartz.net
 
 
 NOTE: You will need to add appsettings.json to Application project with the following data:
