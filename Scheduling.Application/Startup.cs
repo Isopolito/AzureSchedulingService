@@ -1,12 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Transactions;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Quartz.Logging;
-using Scheduling.Application.Logging;
 using Scheduling.Application.Scheduling;
 using Scheduling.Application.ServiceBus;
 
@@ -42,7 +39,7 @@ namespace Scheduling.Application
             using (host)
             {
                 // Start scheduler: it will continuously monitor and look for jobs that need to be executed
-                // Need to set up a customized IJobFactory to use the service container so that IJob implementations can use DI
+                // Need to set up a customized IJobFactory in order to use the service container so that the IJob implementations can leverage DI
                 var jobHost = host.Services.GetService(typeof(IJobHost)) as JobHost;
                 var inputs = new Dictionary<string, object>
                 {

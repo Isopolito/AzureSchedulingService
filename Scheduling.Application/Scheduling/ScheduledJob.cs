@@ -40,7 +40,6 @@ namespace Scheduling.Application.Scheduling
             catch (Exception e)
             {
                 logger.LogError(e, $"Unable to execute job--jobUid: {jobUid}, subscriptionId: {subscriptionId}");
-                throw;
             }
         }
     }

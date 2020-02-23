@@ -18,7 +18,7 @@ using Scheduling.SharedPackage.Scheduling;
 
 namespace Scheduling.Application.Scheduling
 {
-    public class SchedulingActions : ISchedulingActions
+    public class SchedulingActions : ISchedulingActions, IDisposable
     {
         private readonly ILogger<SchedulingActions> logger;
         private readonly StdSchedulerFactory standardFactory;
@@ -40,7 +40,8 @@ namespace Scheduling.Application.Scheduling
             }
             catch (Exception e)
             {
-                logger.LogError(e, "Error starting scheduler");
+                logger.LogError(e, "Error getting quartz settings");
+                throw;
             }
         }
 
@@ -48,6 +49,7 @@ namespace Scheduling.Application.Scheduling
         {
             try
             {
+                // TODO: Get Quartz logging integrated into ILogger
                 LogProvider.SetCurrentLogProvider(new QuartzLoggingProvider(logger));
                 scheduler = await standardFactory.GetScheduler(ct);
                 scheduler.JobFactory = jobFactory;
@@ -56,6 +58,7 @@ namespace Scheduling.Application.Scheduling
             catch (Exception e)
             {
                 logger.LogError(e, "Error starting scheduler");
+                throw;
             }
         }
 
@@ -122,37 +125,53 @@ namespace Scheduling.Application.Scheduling
             return true;
         }
 
-        private static ITrigger BuildTrigger(Guid jobUid, string subscriptionId, JobSchedule schedule)
+        private ITrigger BuildTrigger(Guid jobUid, string subscriptionId, JobSchedule schedule)
         {
-            var trigger = TriggerBuilder.Create()
-                .WithIdentity(jobUid.ToString(), subscriptionId)
-                .StartAt(schedule.StartAt);
-
-            if (schedule.EndAt.HasValue)
+            try
             {
-                trigger.EndAt(schedule.EndAt);
-            }
+                var trigger = TriggerBuilder.Create()
+                    .WithIdentity(jobUid.ToString(), subscriptionId)
+                    .StartAt(schedule.StartAt);
 
-            var simpleSchedule = SimpleScheduleBuilder.Create();
-            if (schedule.RepeatCount > 0)
+                if (schedule.EndAt.HasValue)
+                {
+                    trigger.EndAt(schedule.EndAt);
+                }
+
+                var simpleSchedule = SimpleScheduleBuilder.Create();
+                if (schedule.RepeatCount > 0)
+                {
+                    simpleSchedule.WithRepeatCount(schedule.RepeatCount);
+                }
+
+                var intervalMultiplierInMinutes = 1;
+                if (schedule.ExecutionInterval.IntervalPeriod == IntervalPeriods.Hours)
+                {
+                    intervalMultiplierInMinutes = 60;
+                }
+                else if (schedule.ExecutionInterval.IntervalPeriod == IntervalPeriods.Days)
+                {
+                    intervalMultiplierInMinutes = 60 * 24;
+                }
+
+                simpleSchedule.WithIntervalInMinutes(schedule.ExecutionInterval.IntervalValue * intervalMultiplierInMinutes);
+                trigger.WithSchedule(simpleSchedule);
+
+                return trigger.Build();
+            }
+            catch (Exception e)
             {
-                simpleSchedule.WithRepeatCount(schedule.RepeatCount);
+                logger.LogError(e, $"Unable to create trigger for jobUid {jobUid}, subscriptionId {subscriptionId}. Schedule: {JsonConvert.SerializeObject(schedule)}");
+                throw;
             }
+        }
 
-            var intervalMultiplierInMinutes = 1;
-            if (schedule.ExecutionInterval.IntervalPeriod == IntervalPeriods.Hours)
+        public void Dispose()
+        {
+            Task.Run(async () =>
             {
-                intervalMultiplierInMinutes = 60;
-            }
-            else if (schedule.ExecutionInterval.IntervalPeriod == IntervalPeriods.Days)
-            {
-                intervalMultiplierInMinutes = 60 * 24;
-            }
-
-            simpleSchedule.WithIntervalInMinutes(schedule.ExecutionInterval.IntervalValue * intervalMultiplierInMinutes);
-            trigger.WithSchedule(simpleSchedule);
-
-            return trigger.Build();
+                await scheduler.Shutdown();
+            }).Wait(TimeSpan.FromSeconds(10));
         }
     }
 }

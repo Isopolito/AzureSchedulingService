@@ -10,7 +10,7 @@ using Scheduling.Application.Constants;
 
 namespace Scheduling.Application.ServiceBus
 {
-    public class ServiceBus : IServiceBus
+    public class ServiceBus : IServiceBus, IDisposable
     {
         private readonly ILogger<ServiceBus> logger;
         private readonly string topicName;
@@ -33,12 +33,19 @@ namespace Scheduling.Application.ServiceBus
 
         public async Task PublishEventToTopic(string subscriptionId, string serializedMessageBody)
         {
-            var message = new Message(Encoding.UTF8.GetBytes(serializedMessageBody))
+            try
             {
-                UserProperties = { ["SubscriptionId"] = subscriptionId }
-            };
+                var message = new Message(Encoding.UTF8.GetBytes(serializedMessageBody))
+                {
+                    UserProperties = { ["SubscriptionId"] = subscriptionId }
+                };
 
-            await topicClient.SendAsync(message);
+                await topicClient.SendAsync(message);
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, $"Unable to send message to subscription {subscriptionId}. Message: ${serializedMessageBody}");
+            }
         }
 
         public async Task EnsureSubscriptionIsSetup(string subscriptionId)
@@ -63,7 +70,6 @@ namespace Scheduling.Application.ServiceBus
             catch (Exception e)
             {
                 logger.LogError(e, $"Error setting up subscription for subscriptionId: {subscriptionId}");
-                throw;
             }
         }
 
@@ -72,5 +78,14 @@ namespace Scheduling.Application.ServiceBus
               {
                   Filter = new SqlFilter($"{SchedulingConstants.SubscriptionId} = '{subscriptionId}'"),
               };
+
+        public void Dispose()
+        {
+            Task.Run(async () =>
+            {
+                await managementClient.CloseAsync();
+                await topicClient.CloseAsync();
+            }).Wait(TimeSpan.FromSeconds(10));
+        }
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
@@ -18,8 +19,15 @@ namespace Scheduling.Application.Functions
         [NoAutomaticTrigger]
         public void InitiateScheduler(ILogger logger, IJobFactory jobFactory, CancellationToken ct)
         {
-            //logger.LogInformation("Started scheduler");
-            schedulingActions.StartScheduler(jobFactory, ct);
+            try
+            {
+                logger.LogInformation("Started scheduler");
+                schedulingActions.StartScheduler(jobFactory, ct);
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, "Unable to start scheduler");
+            }
         }
     }
 }
