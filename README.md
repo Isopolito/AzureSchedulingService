@@ -23,7 +23,8 @@ and an appsettings.json to the testing project that has the following shape:
 {
   "Azure":  {
     "AzureWebJobsServiceBus": "Service bus config string", 
-    "SchedulingQueueName":  "whatever"
+    "SchedulingAddJobQueueName":  "scheduling-add",
+    "SchedulingDeleteJobQueueName":  "scheduling-delete"
   } 
 }
 ```

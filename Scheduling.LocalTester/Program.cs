@@ -23,33 +23,56 @@ namespace Scheduling.LocalTester
             var configuration = builder.Build();
 
             var azureConfig = configuration.GetSection("Azure");
-            var queueName = azureConfig["SchedulingQueueName"];
+            var addJobQueueName = azureConfig["SchedulingAddJobQueueName"];
+            var deleteJobQueueName = azureConfig["SchedulingDeleteJobQueueName"];
             var connectionStringServiceBus = azureConfig["AzureWebJobsServiceBus"];
 
-            await SendMessage(connectionStringServiceBus, queueName);
+            await StartSendingMessages(connectionStringServiceBus, addJobQueueName, deleteJobQueueName);
         }
 
-        private static async Task SendMessage(string connectionStringServiceBus, string queueName)
+        private static async Task StartSendingMessages(string connectionStringServiceBus, string addJobQueueName, string deleteJobQueueName)
         {
-            var queueClient = new QueueClient(connectionStringServiceBus, queueName);
+            var addJobQueueClient = new QueueClient(connectionStringServiceBus, addJobQueueName);
+            var deleteJobQueueClient = new QueueClient(connectionStringServiceBus, deleteJobQueueName);
 
             Console.WriteLine("======================================================");
             Console.WriteLine("Press any key to send a message....");
             Console.WriteLine("======================================================");
 
-            var guid = Guid.NewGuid();
             while (true)
             {
                 //Console.ReadKey();
 
+                var guid = Guid.NewGuid();
                 Thread.Sleep(1);
-                await SendMessagesToQueueAsync(queueClient, guid);
+                //await SendDeleteJobMessagesToQueueAsync(deleteJobQueueClient, Guid.Parse("4aaf1985-438b-4e8a-baa3-c5aaf7b82f62"));
+                await SendAddJobMessagesToQueueAsync(addJobQueueClient, guid);
             }
 
             //await queueClient.CloseAsync();
         }
 
-        private static async Task SendMessagesToQueueAsync(QueueClient queueClient, Guid guid)
+        private static async Task SendDeleteJobMessagesToQueueAsync(QueueClient queueClient, Guid guid)
+        {
+            try
+            {
+                var deleteJobMessage = new DeleteJobMessage
+                {
+                    SubscriptionId = "scheduling-testsubscription-1",
+                    JobUid = guid,
+                };
+                var messageBody = JsonConvert.SerializeObject(deleteJobMessage);
+                var message = new Message(Encoding.UTF8.GetBytes(messageBody));
+
+                await queueClient.SendAsync(message);
+            }
+            catch (Exception exception)
+            {
+                Console.WriteLine($"Exception: {exception.Message}");
+            }
+        }
+
+        private static async Task SendAddJobMessagesToQueueAsync(QueueClient queueClient, Guid guid)
         {
             try
             {

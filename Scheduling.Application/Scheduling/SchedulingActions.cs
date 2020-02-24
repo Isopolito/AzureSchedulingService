@@ -20,9 +20,9 @@ namespace Scheduling.Application.Scheduling
 {
     public class SchedulingActions : ISchedulingActions, IDisposable
     {
+        private IScheduler scheduler;
         private readonly ILogger<SchedulingActions> logger;
         private readonly StdSchedulerFactory standardFactory;
-        private IScheduler scheduler;
 
         public SchedulingActions(ILogger<SchedulingActions> logger, IConfiguration configuration)
         {
