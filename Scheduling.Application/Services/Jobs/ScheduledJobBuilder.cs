@@ -19,7 +19,7 @@ namespace Scheduling.Application.Services.Jobs
             this.logger = logger;
         }
 
-        public  IJobDetail BuildJob(ScheduleJobMessage scheduleJobMessage)
+        public IJobDetail BuildJob(ScheduleJobMessage scheduleJobMessage)
             => JobBuilder.Create<ScheduledJob>()
                 .WithIdentity(scheduleJobMessage.JobUid.ToString(), scheduleJobMessage.SubscriptionId)
                 .UsingJobData(SchedulingConstants.JobUid, scheduleJobMessage.JobUid.ToString())
@@ -28,14 +28,29 @@ namespace Scheduling.Application.Services.Jobs
 
         public void AssertInputIsValid(ScheduleJobMessage scheduleJobMessage)
         {
-            if (scheduleJobMessage.Schedule?.ExecutionInterval == null)
-            {
-                throw new ArgumentException($"Schedule configuration, including ExecutionInterval, is required. Message: {JsonConvert.SerializeObject(scheduleJobMessage)}");
-            }
-
             if (scheduleJobMessage.JobUid == Guid.Empty || string.IsNullOrEmpty(scheduleJobMessage.SubscriptionId))
             {
-                throw new ArgumentException($"JobUid and SubscriptionId are required for scheduling a job. Message: {JsonConvert.SerializeObject(scheduleJobMessage)}");
+                throw new ArgumentException("JobUid and SubscriptionId are required for scheduling a job");
+            }
+
+            if (scheduleJobMessage.Schedule == null)
+            {
+                throw new ArgumentException("Schedule property is required in order to schedule job");
+            }
+
+            if (scheduleJobMessage.Schedule.ExecutionInterval != null && scheduleJobMessage.Schedule.ExecutionInterval.IntervalValue < 1)
+            {
+                throw new ArgumentException("Scheduling ExecutionInterval property--IntervalValue--must be a positive value");
+            }
+
+            if (scheduleJobMessage.Schedule.StartAt < DateTime.Now)
+            {
+                throw new ArgumentException("StartAt cannot be a date in the past");
+            }
+
+            if (scheduleJobMessage.Schedule.RepeatCount < 0)
+            {
+                throw new ArgumentException("Scheduled Repeat count cannot be a negative number");
             }
         }
 
@@ -58,17 +73,21 @@ namespace Scheduling.Application.Services.Jobs
                     simpleSchedule.WithRepeatCount(schedule.RepeatCount);
                 }
 
-                var intervalMultiplierInMinutes = 1;
-                if (schedule.ExecutionInterval.IntervalPeriod == IntervalPeriods.Hours)
+                if (schedule.ExecutionInterval != null)
                 {
-                    intervalMultiplierInMinutes = 60;
-                }
-                else if (schedule.ExecutionInterval.IntervalPeriod == IntervalPeriods.Days)
-                {
-                    intervalMultiplierInMinutes = 60 * 24;
+                    var intervalMultiplierInMinutes = 1;
+                    if (schedule.ExecutionInterval.IntervalPeriod == IntervalPeriods.Hours)
+                    {
+                        intervalMultiplierInMinutes = 60;
+                    }
+                    else if (schedule.ExecutionInterval.IntervalPeriod == IntervalPeriods.Days)
+                    {
+                        intervalMultiplierInMinutes = 60 * 24;
+                    }
+
+                    simpleSchedule.WithIntervalInMinutes(schedule.ExecutionInterval.IntervalValue * intervalMultiplierInMinutes);
                 }
 
-                simpleSchedule.WithIntervalInMinutes(schedule.ExecutionInterval.IntervalValue * intervalMultiplierInMinutes);
                 trigger.WithSchedule(simpleSchedule);
 
                 return trigger.Build();
