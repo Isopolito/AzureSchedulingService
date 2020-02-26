@@ -4,10 +4,10 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Quartz;
 using Scheduling.Application.Constants;
-using Scheduling.Application.ServiceBus;
+using Scheduling.Application.Services.ServiceBus;
 using Scheduling.SharedPackage.Messages;
 
-namespace Scheduling.Application.Scheduling
+namespace Scheduling.Application.Jobs
 {
     public class ScheduledJob : IJob
     {

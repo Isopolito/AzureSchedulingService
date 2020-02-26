@@ -8,7 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Scheduling.Application.Constants;
 
-namespace Scheduling.Application.ServiceBus
+namespace Scheduling.Application.Services.ServiceBus
 {
     public class ServiceBus : IServiceBus, IDisposable
     {

@@ -4,8 +4,10 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Scheduling.Application.Scheduling;
-using Scheduling.Application.ServiceBus;
+using Scheduling.Application.Jobs;
+using Scheduling.Application.Services.Jobs;
+using Scheduling.Application.Services.Scheduling;
+using Scheduling.Application.Services.ServiceBus;
 
 namespace Scheduling.Application
 {
@@ -21,8 +23,10 @@ namespace Scheduling.Application
                 {
                     services.AddLogging();
 
-                    services.AddSingleton<IServiceBus, ServiceBus.ServiceBus>();
+                    services.AddSingleton<IServiceBus, ServiceBus>();
                     services.AddSingleton<ISchedulingActions, SchedulingActions>();
+                    services.AddSingleton<IScheduledJobBuilder, ScheduledJobBuilder>();
+
                     services.AddTransient<ScheduledJob>();
                 })
                 .ConfigureWebJobs(b =>

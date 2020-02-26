@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Quartz;
 using Quartz.Spi;
 
-namespace Scheduling.Application.Scheduling
+namespace Scheduling.Application.Jobs
 {
     public class JobFactory : IJobFactory
     {

@@ -1,7 +1,6 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
-namespace Scheduling.Application.ServiceBus
+namespace Scheduling.Application.Services.ServiceBus
 {
     // Register as singleton to allow for caching of queueClients
     public interface IServiceBus

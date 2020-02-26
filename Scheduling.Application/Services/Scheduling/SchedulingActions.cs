@@ -10,25 +10,25 @@ using Quartz;
 using Quartz.Impl;
 using Quartz.Logging;
 using Quartz.Spi;
-using Scheduling.Application.Constants;
 using Scheduling.Application.Logging;
-using Scheduling.SharedPackage.Enumerations;
+using Scheduling.Application.Services.Jobs;
 using Scheduling.SharedPackage.Messages;
-using Scheduling.SharedPackage.Scheduling;
 
-namespace Scheduling.Application.Scheduling
+namespace Scheduling.Application.Services.Scheduling
 {
     public class SchedulingActions : ISchedulingActions, IDisposable
     {
         private IScheduler scheduler;
         private readonly ILogger<SchedulingActions> logger;
         private readonly StdSchedulerFactory standardFactory;
+        private readonly IScheduledJobBuilder scheduledJobBuilder;
 
-        public SchedulingActions(ILogger<SchedulingActions> logger, IConfiguration configuration)
+        public SchedulingActions(ILogger<SchedulingActions> logger, IConfiguration configuration, IScheduledJobBuilder scheduledJobBuilder)
         {
             try
             {
                 this.logger = logger;
+                this.scheduledJobBuilder = scheduledJobBuilder;
 
                 var quartzSettingsDict = configuration.GetSection("Quartz")
                     .GetChildren()
@@ -71,17 +71,12 @@ namespace Scheduling.Application.Scheduling
         {
             try
             {
-                if (!IsInputValid(scheduleJobMessage)) return;
+                scheduledJobBuilder.AssertInputIsValid(scheduleJobMessage);
 
                 await RemoveJobIfAlreadyExists(scheduleJobMessage.JobUid, scheduleJobMessage.SubscriptionId, ct);
 
-                var job = JobBuilder.Create<ScheduledJob>()
-                    .WithIdentity(scheduleJobMessage.JobUid.ToString(), scheduleJobMessage.SubscriptionId)
-                    .UsingJobData(SchedulingConstants.JobUid, scheduleJobMessage.JobUid.ToString())
-                    .UsingJobData(SchedulingConstants.SubscriptionId, scheduleJobMessage.SubscriptionId)
-                    .Build();
-
-                var trigger = BuildTrigger(scheduleJobMessage.JobUid, scheduleJobMessage.SubscriptionId, scheduleJobMessage.Schedule);
+                var job = scheduledJobBuilder.BuildJob(scheduleJobMessage);
+                var trigger = scheduledJobBuilder.BuildTrigger(scheduleJobMessage.JobUid, scheduleJobMessage.SubscriptionId, scheduleJobMessage.Schedule);
 
                 await scheduler.ScheduleJob(job, trigger, ct);
             }
@@ -105,64 +100,6 @@ namespace Scheduling.Application.Scheduling
             catch (Exception e)
             {
                 logger.LogError(e, $"Error deleting scheduled job, JobUid: {jobUid}");
-            }
-        }
-
-        private bool IsInputValid(ScheduleJobMessage scheduleJobMessage)
-        {
-            if (scheduleJobMessage.Schedule?.ExecutionInterval == null)
-            {
-                logger.LogError($"Schedule configuration, including ExecutionInterval, is required. Message: {JsonConvert.SerializeObject(scheduleJobMessage)}");
-                return false;
-            }
-
-            if (scheduleJobMessage.JobUid == Guid.Empty || string.IsNullOrEmpty(scheduleJobMessage.SubscriptionId))
-            {
-                logger.LogError($"JobUid and SubscriptionId are required for scheduling a job. Message: {JsonConvert.SerializeObject(scheduleJobMessage)}");
-                return false;
-            }
-
-            return true;
-        }
-
-        private ITrigger BuildTrigger(Guid jobUid, string subscriptionId, JobSchedule schedule)
-        {
-            try
-            {
-                var trigger = TriggerBuilder.Create()
-                    .WithIdentity(jobUid.ToString(), subscriptionId)
-                    .StartAt(schedule.StartAt);
-
-                if (schedule.EndAt.HasValue)
-                {
-                    trigger.EndAt(schedule.EndAt);
-                }
-
-                var simpleSchedule = SimpleScheduleBuilder.Create();
-                if (schedule.RepeatCount > 0)
-                {
-                    simpleSchedule.WithRepeatCount(schedule.RepeatCount);
-                }
-
-                var intervalMultiplierInMinutes = 1;
-                if (schedule.ExecutionInterval.IntervalPeriod == IntervalPeriods.Hours)
-                {
-                    intervalMultiplierInMinutes = 60;
-                }
-                else if (schedule.ExecutionInterval.IntervalPeriod == IntervalPeriods.Days)
-                {
-                    intervalMultiplierInMinutes = 60 * 24;
-                }
-
-                simpleSchedule.WithIntervalInMinutes(schedule.ExecutionInterval.IntervalValue * intervalMultiplierInMinutes);
-                trigger.WithSchedule(simpleSchedule);
-
-                return trigger.Build();
-            }
-            catch (Exception e)
-            {
-                logger.LogError(e, $"Unable to create trigger for jobUid {jobUid}, subscriptionId {subscriptionId}. Schedule: {JsonConvert.SerializeObject(schedule)}");
-                throw;
             }
         }
 

@@ -6,7 +6,7 @@ using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using Scheduling.Application.Scheduling;
+using Scheduling.Application.Services.Scheduling;
 using Scheduling.SharedPackage.Messages;
 
 namespace Scheduling.Application.Functions
