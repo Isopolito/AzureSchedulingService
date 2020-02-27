@@ -9,7 +9,7 @@ using Scheduling.SharedPackage.Scheduling;
 
 namespace Scheduling.UnitTests.ScheduledJobs
 {
-    public class JobTriggerSpecs
+    public class JobBuildingSpecs
     {
         private IScheduledJobBuilder scheduledJobBuilder;
         private ScheduleJobMessage defaultMessage;
