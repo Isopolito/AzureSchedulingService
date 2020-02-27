@@ -17,6 +17,7 @@ NOTE: You will need to add appsettings.json to Application project with the foll
 }
 ```
 
+For persisting jobs to DB, make sure Quartz is configured with a db connection string and run the sql script in the application project.
 
 and an appsettings.json to the testing project that has the following shape:
 ```javascript
