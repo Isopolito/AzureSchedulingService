@@ -4,7 +4,6 @@ using Newtonsoft.Json;
 using Quartz;
 using Scheduling.Application.Constants;
 using Scheduling.Application.Jobs;
-using Scheduling.SharedPackage.Enumerations;
 using Scheduling.SharedPackage.Messages;
 using Scheduling.SharedPackage.Scheduling;
 
@@ -38,9 +37,10 @@ namespace Scheduling.Application.Services.Jobs
                 throw new ArgumentException("Schedule property is required in order to schedule job");
             }
 
-            if (scheduleJobMessage.Schedule.ExecutionInterval != null && scheduleJobMessage.Schedule.ExecutionInterval.IntervalValue < 1)
+            if (scheduleJobMessage.Schedule.RepeatInterval.HasValue 
+                && scheduleJobMessage.Schedule.RepeatInterval.Value < TimeSpan.FromMilliseconds(SchedulingConstants.MinimumRepeatIntervalInMs))
             {
-                throw new ArgumentException("Scheduling ExecutionInterval property--IntervalValue--must be a positive value");
+                throw new ArgumentException($"Scheduling RepeatInterval time must be a greater then or equal to {SchedulingConstants.MinimumRepeatIntervalInMs}ms");
             }
 
             if (scheduleJobMessage.Schedule.StartAt < DateTime.Now)
@@ -48,9 +48,14 @@ namespace Scheduling.Application.Services.Jobs
                 throw new ArgumentException("StartAt cannot be a date in the past");
             }
 
+            if (scheduleJobMessage.Schedule.EndAt.HasValue && scheduleJobMessage.Schedule.EndAt < DateTime.Now)
+            {
+                throw new ArgumentException("EndAt cannot be a date in the past");
+            }
+
             if (scheduleJobMessage.Schedule.RepeatCount < 0)
             {
-                throw new ArgumentException("Scheduled Repeat count cannot be a negative number");
+                throw new ArgumentException("Scheduled RepeatCount cannot be a negative number");
             }
         }
 
@@ -58,6 +63,14 @@ namespace Scheduling.Application.Services.Jobs
         {
             try
             {
+                if (!string.IsNullOrEmpty(schedule.CronOverride))
+                {
+                    return TriggerBuilder.Create()
+                        .WithIdentity(jobUid.ToString(), subscriptionId)
+                        .WithCronSchedule(schedule.CronOverride)
+                        .Build();
+                }
+
                 var trigger = TriggerBuilder.Create()
                     .WithIdentity(jobUid.ToString(), subscriptionId)
                     .StartAt(schedule.StartAt);
@@ -73,19 +86,9 @@ namespace Scheduling.Application.Services.Jobs
                     simpleSchedule.WithRepeatCount(schedule.RepeatCount);
                 }
 
-                if (schedule.ExecutionInterval != null)
+                if (schedule.RepeatInterval.HasValue)
                 {
-                    var intervalMultiplierInMinutes = 1;
-                    if (schedule.ExecutionInterval.IntervalPeriod == IntervalPeriods.Hours)
-                    {
-                        intervalMultiplierInMinutes = 60;
-                    }
-                    else if (schedule.ExecutionInterval.IntervalPeriod == IntervalPeriods.Days)
-                    {
-                        intervalMultiplierInMinutes = 60 * 24;
-                    }
-
-                    simpleSchedule.WithIntervalInMinutes(schedule.ExecutionInterval.IntervalValue * intervalMultiplierInMinutes);
+                    simpleSchedule.WithInterval(schedule.RepeatInterval.Value);
                 }
 
                 trigger.WithSchedule(simpleSchedule);
