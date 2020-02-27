@@ -29,3 +29,5 @@ and an appsettings.json to the testing project that has the following shape:
   } 
 }
 ```
+
+The logic will create a subscription if it doesn't exist, but keep in mind that an azure function listening to a subscription that doesn't exist will fail.
