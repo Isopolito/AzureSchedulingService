@@ -22,7 +22,7 @@ namespace Scheduling.Application.Jobs
 
         public async Task Execute(IJobExecutionContext context)
         {
-            string subscriptionId = "", jobUid = "";
+            string subscriptionId = string.Empty, jobUid = string.Empty;
             try
             {
                 var dataMap = context.JobDetail.JobDataMap;

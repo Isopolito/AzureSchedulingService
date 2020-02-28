@@ -53,7 +53,7 @@ namespace Scheduling.UnitTests.ScheduledJobs
         {
             var message = new ScheduleJobMessage
             {
-                SubscriptionId = "",
+                SubscriptionId = string.Empty,
                 JobUid = Guid.NewGuid(),
                 Schedule = new JobSchedule(),
             };
