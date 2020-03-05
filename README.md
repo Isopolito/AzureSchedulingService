@@ -35,4 +35,4 @@ The logic will create a subscription if it doesn't exist, but keep in mind that 
 ---
 
 This is the high level design of how it works
-![alt text](./GhSchedulingService.png "Design")
+![alt text](./design_diagram.png "Design")
