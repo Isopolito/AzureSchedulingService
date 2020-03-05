@@ -8,7 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Scheduling.Application.Constants;
 
-namespace Scheduling.Application.Services.ServiceBus
+namespace Scheduling.Application.ServiceBus
 {
     public class ServiceBus : IServiceBus, IDisposable
     {
@@ -31,52 +31,52 @@ namespace Scheduling.Application.Services.ServiceBus
             managementClient = new ManagementClient(serviceBusConnString);
         }
 
-        public async Task PublishEventToTopic(string subscriptionId, string serializedMessageBody)
+        public async Task PublishEventToTopic(string subscriptionName, string serializedMessageBody)
         {
             try
             {
                 var message = new Message(Encoding.UTF8.GetBytes(serializedMessageBody))
                 {
-                    UserProperties = { ["SubscriptionId"] = subscriptionId }
+                    UserProperties = { ["SubscriptionName"] = subscriptionName }
                 };
 
                 await topicClient.SendAsync(message);
             }
             catch (Exception e)
             {
-                logger.LogError(e, $"Unable to send message to subscription {subscriptionId}. Message: ${serializedMessageBody}");
+                logger.LogError(e, $"Unable to send message to subscription {subscriptionName}. Message: ${serializedMessageBody}");
             }
         }
 
-        public async Task EnsureSubscriptionIsSetup(string subscriptionId)
+        public async Task EnsureSubscriptionIsSetup(string subscriptionName)
         {
             try
             {
                 // The hash lookup works only when this class is registered in DI as a singleton
-                if (subscriptionsThatHaveBeenSetup.Contains(subscriptionId)) return;
+                if (subscriptionsThatHaveBeenSetup.Contains(subscriptionName)) return;
 
-                subscriptionsThatHaveBeenSetup.Add(subscriptionId);
-                if (!await managementClient.SubscriptionExistsAsync(topicName, subscriptionId))
+                subscriptionsThatHaveBeenSetup.Add(subscriptionName);
+                if (!await managementClient.SubscriptionExistsAsync(topicName, subscriptionName))
                 {
-                    await managementClient.CreateSubscriptionAsync(new SubscriptionDescription(topicName, subscriptionId), MakeRule(subscriptionId));
+                    await managementClient.CreateSubscriptionAsync(new SubscriptionDescription(topicName, subscriptionName), MakeRule(subscriptionName));
                 }
                 else
                 {
-                    // The default rule is to accept everything, so delete it and replace it with the subscriptionId filter
-                    await managementClient.DeleteRuleAsync(topicName, subscriptionId, "$Default");
-                    await managementClient.CreateRuleAsync(topicName, subscriptionId, MakeRule(subscriptionId));
+                    // The default rule is to accept everything, so delete it and replace it with the subscriptionName filter
+                    await managementClient.DeleteRuleAsync(topicName, subscriptionName, "$Default");
+                    await managementClient.CreateRuleAsync(topicName, subscriptionName, MakeRule(subscriptionName));
                 }
             }
             catch (Exception e)
             {
-                logger.LogError(e, $"Error setting up subscription for subscriptionId: {subscriptionId}");
+                logger.LogError(e, $"Error setting up subscription for subscriptionName: {subscriptionName}");
             }
         }
 
-        private static RuleDescription MakeRule(string subscriptionId)
+        private static RuleDescription MakeRule(string subscriptionName)
             => new RuleDescription
               {
-                  Filter = new SqlFilter($"{SchedulingConstants.SubscriptionId} = '{subscriptionId}'"),
+                  Filter = new SqlFilter($"{SchedulingConstants.SubscriptionName} = '{subscriptionName}'"),
               };
 
         public void Dispose()

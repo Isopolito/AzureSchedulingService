@@ -10,11 +10,11 @@ using Quartz;
 using Quartz.Impl;
 using Quartz.Logging;
 using Quartz.Spi;
+using Scheduling.Application.Jobs.Services;
 using Scheduling.Application.Logging;
-using Scheduling.Application.Services.Jobs;
 using Scheduling.SharedPackage.Messages;
 
-namespace Scheduling.Application.Services.Scheduling
+namespace Scheduling.Application.Scheduling
 {
     public class SchedulingActions : ISchedulingActions, IDisposable
     {
@@ -64,7 +64,7 @@ namespace Scheduling.Application.Services.Scheduling
 
         public async Task DeleteJob(DeleteJobMessage deleteJobMessage, CancellationToken ct)
         {
-            await RemoveJobIfAlreadyExists(deleteJobMessage.JobUid, deleteJobMessage.SubscriptionId, ct);
+            await RemoveJobIfAlreadyExists(deleteJobMessage.JobUid, deleteJobMessage.SubscriptionName, ct);
         }
 
         public async Task AddOrUpdateJob(ScheduleJobMessage scheduleJobMessage, CancellationToken ct)
@@ -73,10 +73,10 @@ namespace Scheduling.Application.Services.Scheduling
             {
                 scheduledJobBuilder.AssertInputIsValid(scheduleJobMessage);
 
-                await RemoveJobIfAlreadyExists(scheduleJobMessage.JobUid, scheduleJobMessage.SubscriptionId, ct);
+                await RemoveJobIfAlreadyExists(scheduleJobMessage.JobUid, scheduleJobMessage.SubscriptionName, ct);
 
                 var job = scheduledJobBuilder.BuildJob(scheduleJobMessage);
-                var trigger = scheduledJobBuilder.BuildTrigger(scheduleJobMessage.JobUid, scheduleJobMessage.SubscriptionId, scheduleJobMessage.Schedule);
+                var trigger = scheduledJobBuilder.BuildTrigger(scheduleJobMessage.JobUid, scheduleJobMessage.SubscriptionName, scheduleJobMessage.Schedule);
 
                 await scheduler.ScheduleJob(job, trigger, ct);
             }
@@ -86,11 +86,11 @@ namespace Scheduling.Application.Services.Scheduling
             }
         }
 
-        private async Task RemoveJobIfAlreadyExists(Guid jobUid, string subscriptionId, CancellationToken ct)
+        private async Task RemoveJobIfAlreadyExists(string jobUid, string subscriptionName, CancellationToken ct)
         {
             try
             {
-                var jobKey = new JobKey(jobUid.ToString(), subscriptionId);
+                var jobKey = new JobKey(jobUid, subscriptionName);
                 var jobExists = await scheduler.CheckExists(jobKey, ct);
                 if (jobExists)
                 {

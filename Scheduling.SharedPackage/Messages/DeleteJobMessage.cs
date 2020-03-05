@@ -4,7 +4,7 @@ namespace Scheduling.SharedPackage.Messages
 {
     public class DeleteJobMessage
     {
-        public Guid JobUid { get; set; }
-        public string SubscriptionId { get; set; }
+        public string JobUid { get; set; }
+        public string SubscriptionName { get; set; }
     }
 }

@@ -42,23 +42,23 @@ namespace Scheduling.LocalTester
             {
                 //Console.ReadKey();
 
-                var guid = Guid.NewGuid();
+                var jobUid = DateTime.Now.ToString();
                 Thread.Sleep(1);
-                //await SendDeleteJobMessagesToQueueAsync(deleteJobQueueClient, Guid.Parse("4aaf1985-438b-4e8a-baa3-c5aaf7b82f62"));
-                await SendAddJobMessagesToQueueAsync(addJobQueueClient, guid);
+                //await SendDeleteJobMessagesToQueueAsync(deleteJobQueueClient, jobUid);
+                await SendAddJobMessagesToQueueAsync(addJobQueueClient, jobUid);
             }
 
             //await queueClient.CloseAsync();
         }
 
-        private static async Task SendDeleteJobMessagesToQueueAsync(QueueClient queueClient, Guid guid)
+        private static async Task SendDeleteJobMessagesToQueueAsync(QueueClient queueClient, string jobUid)
         {
             try
             {
                 var deleteJobMessage = new DeleteJobMessage
                 {
-                    SubscriptionId = "scheduling-testsubscription-1",
-                    JobUid = guid,
+                    SubscriptionName = "scheduling-testsubscription-1",
+                    JobUid = jobUid,
                 };
                 var messageBody = JsonConvert.SerializeObject(deleteJobMessage);
                 var message = new Message(Encoding.UTF8.GetBytes(messageBody));
@@ -71,7 +71,7 @@ namespace Scheduling.LocalTester
             }
         }
 
-        private static async Task SendAddJobMessagesToQueueAsync(QueueClient queueClient, Guid guid)
+        private static async Task SendAddJobMessagesToQueueAsync(QueueClient queueClient, string jobUid)
         {
             try
             {
@@ -85,8 +85,8 @@ namespace Scheduling.LocalTester
 
                 var scheduleJobMessage = new ScheduleJobMessage
                 {
-                    SubscriptionId = "scheduling-testsubscription-1",
-                    JobUid = guid,
+                    SubscriptionName = "scheduling-testsubscription-1",
+                    JobUid = jobUid,
                     Schedule = jobSchedule,
                 };
                 var messageBody = JsonConvert.SerializeObject(scheduleJobMessage);

@@ -3,11 +3,10 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Quartz;
 using Scheduling.Application.Constants;
-using Scheduling.Application.Jobs;
 using Scheduling.SharedPackage.Messages;
 using Scheduling.SharedPackage.Scheduling;
 
-namespace Scheduling.Application.Services.Jobs
+namespace Scheduling.Application.Jobs.Services
 {
     public class ScheduledJobBuilder : IScheduledJobBuilder
     {
@@ -20,16 +19,16 @@ namespace Scheduling.Application.Services.Jobs
 
         public IJobDetail BuildJob(ScheduleJobMessage scheduleJobMessage)
             => JobBuilder.Create<ScheduledJob>()
-                .WithIdentity(scheduleJobMessage.JobUid.ToString(), scheduleJobMessage.SubscriptionId)
-                .UsingJobData(SchedulingConstants.JobUid, scheduleJobMessage.JobUid.ToString())
-                .UsingJobData(SchedulingConstants.SubscriptionId, scheduleJobMessage.SubscriptionId)
+                .WithIdentity(scheduleJobMessage.JobUid, scheduleJobMessage.SubscriptionName)
+                .UsingJobData(SchedulingConstants.JobUid, scheduleJobMessage.JobUid)
+                .UsingJobData(SchedulingConstants.SubscriptionName, scheduleJobMessage.SubscriptionName)
                 .Build();
 
         public void AssertInputIsValid(ScheduleJobMessage scheduleJobMessage)
         {
-            if (scheduleJobMessage.JobUid == Guid.Empty || string.IsNullOrEmpty(scheduleJobMessage.SubscriptionId))
+            if (string.IsNullOrEmpty(scheduleJobMessage.JobUid) || string.IsNullOrEmpty(scheduleJobMessage.SubscriptionName))
             {
-                throw new ArgumentException("JobUid and SubscriptionId are required for scheduling a job");
+                throw new ArgumentException("JobUid and SubscriptionName are required for scheduling a job");
             }
 
             if (scheduleJobMessage.Schedule == null)
@@ -59,20 +58,20 @@ namespace Scheduling.Application.Services.Jobs
             }
         }
 
-        public ITrigger BuildTrigger(Guid jobUid, string subscriptionId, JobSchedule schedule)
+        public ITrigger BuildTrigger(string jobUid, string subscriptionName, JobSchedule schedule)
         {
             try
             {
                 if (!string.IsNullOrEmpty(schedule.CronOverride))
                 {
                     return TriggerBuilder.Create()
-                        .WithIdentity(jobUid.ToString(), subscriptionId)
+                        .WithIdentity(jobUid, subscriptionName)
                         .WithCronSchedule(schedule.CronOverride)
                         .Build();
                 }
 
                 var trigger = TriggerBuilder.Create()
-                    .WithIdentity(jobUid.ToString(), subscriptionId)
+                    .WithIdentity(jobUid, subscriptionName)
                     .StartAt(schedule.StartAt);
 
                 if (schedule.EndAt.HasValue)
@@ -97,7 +96,7 @@ namespace Scheduling.Application.Services.Jobs
             }
             catch (Exception e)
             {
-                logger.LogError(e, $"Unable to create trigger for jobUid {jobUid}, subscriptionId {subscriptionId}. Schedule: {JsonConvert.SerializeObject(schedule)}");
+                logger.LogError(e, $"Unable to create trigger for jobUid {jobUid}, subscriptionName {subscriptionName}. Schedule: {JsonConvert.SerializeObject(schedule)}");
                 throw;
             }
         }

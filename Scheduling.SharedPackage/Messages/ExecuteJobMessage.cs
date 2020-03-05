@@ -4,6 +4,6 @@ namespace Scheduling.SharedPackage.Messages
 {
     public class ExecuteJobMessage
     {
-        public Guid JobUid { get; set; }
+        public string JobUid { get; set; }
     }
 }

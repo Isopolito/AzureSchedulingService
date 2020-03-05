@@ -3,7 +3,7 @@ using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using NUnit.Framework;
-using Scheduling.Application.Services.Jobs;
+using Scheduling.Application.Jobs.Services;
 using Scheduling.SharedPackage.Messages;
 using Scheduling.SharedPackage.Scheduling;
 
@@ -25,8 +25,8 @@ namespace Scheduling.UnitTests.ScheduledJobs
         {
             var message = new ScheduleJobMessage
             {
-                JobUid = Guid.NewGuid(),
-                SubscriptionId = "foo",
+                JobUid = "unique id 1234",
+                SubscriptionName = "foo",
                 Schedule = null,
             };
 
@@ -35,12 +35,12 @@ namespace Scheduling.UnitTests.ScheduledJobs
         }
 
         [Test]
-        public void Throw_Exception_If_SubscriptionId_Is_Null()
+        public void Throw_Exception_If_SubscriptionName_Is_Null()
         {
             var message = new ScheduleJobMessage
             {
-                SubscriptionId = null,
-                JobUid = Guid.NewGuid(),
+                SubscriptionName = null,
+                JobUid = "unique id 1234",
                 Schedule = new JobSchedule(),
             };
 
@@ -49,18 +49,18 @@ namespace Scheduling.UnitTests.ScheduledJobs
         }
 
         [Test]
-        public void Throw_Exception_If_SubscriptionId_Is_Empty()
+        public void Throw_Exception_If_SubscriptionName_Is_Empty()
         {
             var message = new ScheduleJobMessage
             {
-                SubscriptionId = string.Empty,
-                JobUid = Guid.NewGuid(),
+                SubscriptionName = string.Empty,
+                JobUid = "unique id 1234",
                 Schedule = new JobSchedule(),
             };
 
             scheduledJobBuilder.Invoking(y => y.AssertInputIsValid(message))
                 .Should().Throw<ArgumentException>()
-                .Where(m => m.Message.Contains("SubscriptionId"));
+                .Where(m => m.Message.Contains("SubscriptionName"));
         }
 
         [Test]
@@ -68,8 +68,8 @@ namespace Scheduling.UnitTests.ScheduledJobs
         {
             var message = new ScheduleJobMessage
             {
-                SubscriptionId = "foo",
-                JobUid = Guid.Empty,
+                SubscriptionName = "foo",
+                JobUid = "unique id 1234",
                 Schedule = new JobSchedule(),
             };
 
@@ -83,8 +83,8 @@ namespace Scheduling.UnitTests.ScheduledJobs
         {
             var message = new ScheduleJobMessage
             {
-                SubscriptionId = "foo",
-                JobUid = Guid.NewGuid(),
+                SubscriptionName = "foo",
+                JobUid = "unique id 1234",
                 Schedule = new JobSchedule
                 {
                     EndAt = DateTime.Now.AddMinutes(-1),
@@ -102,8 +102,8 @@ namespace Scheduling.UnitTests.ScheduledJobs
         {
             var message = new ScheduleJobMessage
             {
-                SubscriptionId = "foo",
-                JobUid = Guid.NewGuid(),
+                SubscriptionName = "foo",
+                JobUid = "unique id 1234",
                 Schedule = new JobSchedule
                 {
                     StartAt = DateTime.Now,
@@ -120,8 +120,8 @@ namespace Scheduling.UnitTests.ScheduledJobs
         {
             var message = new ScheduleJobMessage
             {
-                SubscriptionId = "foo",
-                JobUid = Guid.NewGuid(),
+                SubscriptionName = "foo",
+                JobUid = "unique id 1234",
                 Schedule = new JobSchedule
                 {
                     RepeatCount = -1,
@@ -139,8 +139,8 @@ namespace Scheduling.UnitTests.ScheduledJobs
         {
             var message = new ScheduleJobMessage
             {
-                SubscriptionId = "foo",
-                JobUid = Guid.NewGuid(),
+                SubscriptionName = "foo",
+                JobUid = "unique id 1234",
                 Schedule = new JobSchedule
                 {
                     RepeatInterval = TimeSpan.FromMilliseconds(5),

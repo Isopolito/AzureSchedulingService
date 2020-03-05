@@ -3,7 +3,7 @@ using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using NUnit.Framework;
-using Scheduling.Application.Services.Jobs;
+using Scheduling.Application.Jobs.Services;
 using Scheduling.SharedPackage.Messages;
 using Scheduling.SharedPackage.Scheduling;
 
@@ -21,8 +21,8 @@ namespace Scheduling.UnitTests.ScheduledJobs
             scheduledJobBuilder = new ScheduledJobBuilder(nullLogger);
             defaultMessage = new ScheduleJobMessage
             {
-                JobUid = Guid.NewGuid(),
-                SubscriptionId = "foo",
+                JobUid = "unique id 1234",
+                SubscriptionName = "foo",
             };
         }
 
@@ -35,7 +35,7 @@ namespace Scheduling.UnitTests.ScheduledJobs
                 StartAt = startAt,
             };
 
-            var trigger = scheduledJobBuilder.BuildTrigger(defaultMessage.JobUid, defaultMessage.SubscriptionId, defaultMessage.Schedule);
+            var trigger = scheduledJobBuilder.BuildTrigger(defaultMessage.JobUid, defaultMessage.SubscriptionName, defaultMessage.Schedule);
 
             trigger.StartTimeUtc.Should().Be(startAt.ToUniversalTime());
         }
@@ -49,7 +49,7 @@ namespace Scheduling.UnitTests.ScheduledJobs
                 EndAt = endAt,
             };
 
-            var trigger = scheduledJobBuilder.BuildTrigger(defaultMessage.JobUid, defaultMessage.SubscriptionId, defaultMessage.Schedule);
+            var trigger = scheduledJobBuilder.BuildTrigger(defaultMessage.JobUid, defaultMessage.SubscriptionName, defaultMessage.Schedule);
 
             trigger.EndTimeUtc.Should().Be(endAt.ToUniversalTime());
         }
@@ -63,20 +63,20 @@ namespace Scheduling.UnitTests.ScheduledJobs
                 EndAt = endAt,
             };
 
-            var trigger = scheduledJobBuilder.BuildTrigger(defaultMessage.JobUid, defaultMessage.SubscriptionId, defaultMessage.Schedule);
+            var trigger = scheduledJobBuilder.BuildTrigger(defaultMessage.JobUid, defaultMessage.SubscriptionName, defaultMessage.Schedule);
 
             trigger.EndTimeUtc.Should().Be(endAt.ToUniversalTime());
         }
 
         [Test]
-        public void Trigger_Identity_Should_Be_SubscriptionId_And_JobId()
+        public void Trigger_Identity_Should_Be_SubscriptionName_And_JobId()
         {
             defaultMessage.Schedule = new JobSchedule();
 
-            var trigger = scheduledJobBuilder.BuildTrigger(defaultMessage.JobUid, defaultMessage.SubscriptionId, defaultMessage.Schedule) as Quartz.Impl.Triggers.SimpleTriggerImpl;
+            var trigger = scheduledJobBuilder.BuildTrigger(defaultMessage.JobUid, defaultMessage.SubscriptionName, defaultMessage.Schedule) as Quartz.Impl.Triggers.SimpleTriggerImpl;
 
-            trigger.Name.Should().Be(defaultMessage.JobUid.ToString());
-            trigger.Group.Should().Be(defaultMessage.SubscriptionId);
+            trigger.Name.Should().Be(defaultMessage.JobUid);
+            trigger.Group.Should().Be(defaultMessage.SubscriptionName);
         }
 
         [Test]
@@ -87,7 +87,7 @@ namespace Scheduling.UnitTests.ScheduledJobs
                 RepeatCount = 99,
             };
 
-            var trigger = scheduledJobBuilder.BuildTrigger(defaultMessage.JobUid, defaultMessage.SubscriptionId, defaultMessage.Schedule) as Quartz.Impl.Triggers.SimpleTriggerImpl;
+            var trigger = scheduledJobBuilder.BuildTrigger(defaultMessage.JobUid, defaultMessage.SubscriptionName, defaultMessage.Schedule) as Quartz.Impl.Triggers.SimpleTriggerImpl;
 
             trigger.RepeatCount.Should().Be(defaultMessage.Schedule.RepeatCount);
         }
@@ -100,7 +100,7 @@ namespace Scheduling.UnitTests.ScheduledJobs
                 RepeatInterval = TimeSpan.FromMinutes(25),
             };
 
-            var trigger = scheduledJobBuilder.BuildTrigger(defaultMessage.JobUid, defaultMessage.SubscriptionId, defaultMessage.Schedule) as Quartz.Impl.Triggers.SimpleTriggerImpl;
+            var trigger = scheduledJobBuilder.BuildTrigger(defaultMessage.JobUid, defaultMessage.SubscriptionName, defaultMessage.Schedule) as Quartz.Impl.Triggers.SimpleTriggerImpl;
 
             trigger.RepeatInterval.Should().Be(TimeSpan.FromMinutes(25));
         }
@@ -114,7 +114,7 @@ namespace Scheduling.UnitTests.ScheduledJobs
                 CronOverride = "0,24 0,33 0 3,18,22 JAN,MAR,NOV ? *",
             };
 
-            var trigger = scheduledJobBuilder.BuildTrigger(defaultMessage.JobUid, defaultMessage.SubscriptionId, defaultMessage.Schedule) as Quartz.Impl.Triggers.CronTriggerImpl;
+            var trigger = scheduledJobBuilder.BuildTrigger(defaultMessage.JobUid, defaultMessage.SubscriptionName, defaultMessage.Schedule) as Quartz.Impl.Triggers.CronTriggerImpl;
             trigger.CronExpressionString.Should().Be(defaultMessage.Schedule.CronOverride);
         }
     }

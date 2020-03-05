@@ -5,9 +5,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Scheduling.Application.Jobs;
-using Scheduling.Application.Services.Jobs;
-using Scheduling.Application.Services.Scheduling;
-using Scheduling.Application.Services.ServiceBus;
+using Scheduling.Application.Jobs.Services;
+using Scheduling.Application.Scheduling;
+using Scheduling.Application.ServiceBus;
 
 namespace Scheduling.Application
 {
@@ -23,7 +23,7 @@ namespace Scheduling.Application
                 {
                     services.AddLogging();
 
-                    services.AddSingleton<IServiceBus, ServiceBus>();
+                    services.AddSingleton<IServiceBus, ServiceBus.ServiceBus>();
                     services.AddSingleton<ISchedulingActions, SchedulingActions>();
                     services.AddSingleton<IScheduledJobBuilder, ScheduledJobBuilder>();
 

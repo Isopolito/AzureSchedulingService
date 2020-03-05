@@ -3,7 +3,7 @@ using System.Threading;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Quartz.Spi;
-using Scheduling.Application.Services.Scheduling;
+using Scheduling.Application.Scheduling;
 
 namespace Scheduling.Application.Functions
 {
@@ -21,6 +21,7 @@ namespace Scheduling.Application.Functions
         {
             try
             {
+                // Once the scheduler is running, all actions will be initiated from the functions that listen to the service bus
                 logger.LogInformation("Started scheduler");
                 schedulingActions.StartScheduler(jobFactory, ct);
             }
