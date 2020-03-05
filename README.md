@@ -30,7 +30,7 @@ and an appsettings.json to the testing project that has the following shape:
 }
 ```
 
-The logic will create a subscription if it doesn't exist, but keep in mind that an azure function listening to a subscription that doesn't exist will fail.
+The logic will create a subscription if it doesn't exist, but keep in mind that an azure function listening to a subscription that doesn't exist will fail. The code will also ensure an existing subscription is configured to only receive execute messages for the specified subscription.
 
 ---
 
