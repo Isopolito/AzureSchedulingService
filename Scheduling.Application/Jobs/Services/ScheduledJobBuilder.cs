@@ -42,6 +42,17 @@ namespace Scheduling.Application.Jobs.Services
                 throw new ArgumentException($"Scheduling RepeatInterval time must be a greater then or equal to {SchedulingConstants.MinimumRepeatIntervalInMs}ms");
             }
 
+            if (scheduleJobMessage.Schedule.RepeatCount > 0 && !scheduleJobMessage.Schedule.RepeatInterval.HasValue)
+            {
+                throw new ArgumentException("A RepeatCount must also have a RepeatInterval provided");
+            }
+
+            if (string.IsNullOrEmpty(scheduleJobMessage.Schedule.CronOverride)
+                && scheduleJobMessage.Schedule.StartAt < DateTime.Now && scheduleJobMessage.Schedule.RepeatCount < 1)
+            {
+                throw new ArgumentException("StartAt cannot be a date in the past if the job is not set to repeat");
+            }
+
             if (scheduleJobMessage.Schedule.EndAt.HasValue && scheduleJobMessage.Schedule.EndAt < DateTime.Now)
             {
                 throw new ArgumentException("EndAt cannot be a date in the past");

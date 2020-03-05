@@ -98,6 +98,44 @@ namespace Scheduling.UnitTests.ScheduledJobs
         }
 
         [Test]
+        public void Throw_Exception_If_RepeatCount_Is_Provided_With_No_RepeatInterval()
+        {
+            var message = new ScheduleJobMessage
+            {
+                SubscriptionName = "foo",
+                JobUid = "unique id 1234",
+                Schedule = new JobSchedule
+                {
+                    StartAt = DateTime.Now,
+                    RepeatCount = 99,
+                }
+            };
+
+            scheduledJobBuilder.Invoking(y => y.AssertInputIsValid(message))
+                .Should().Throw<ArgumentException>()
+                .Where(m => m.Message.Contains("RepeatCount must also have"));
+        }
+
+
+        [Test]
+        public void Throw_Exception_If_Scheduled_StartAt_Is_In_The_Past_And_Job_Is_Not_Repeating()
+        {
+            var message = new ScheduleJobMessage
+            {
+                SubscriptionName = "foo",
+                JobUid = "unique id 1234",
+                Schedule = new JobSchedule
+                {
+                    StartAt = DateTime.Now.AddMinutes(-5),
+                }
+            };
+
+            scheduledJobBuilder.Invoking(y => y.AssertInputIsValid(message))
+                .Should().Throw<ArgumentException>()
+                .Where(m => m.Message.Contains("StartAt"));
+        }
+
+        [Test]
         public void Throw_Exception_If_RepeatCount_Is_Negative()
         {
             var message = new ScheduleJobMessage
