@@ -69,7 +69,7 @@ namespace Scheduling.UnitTests.ScheduledJobs
             var message = new ScheduleJobMessage
             {
                 SubscriptionName = "foo",
-                JobUid = "unique id 1234",
+                JobUid = null,
                 Schedule = new JobSchedule(),
             };
 
@@ -95,24 +95,6 @@ namespace Scheduling.UnitTests.ScheduledJobs
             scheduledJobBuilder.Invoking(y => y.AssertInputIsValid(message))
                 .Should().Throw<ArgumentException>()
                 .Where(m => m.Message.Contains("EndAt"));
-        }
-
-        [Test]
-        public void Throw_Exception_If_Scheduled_StartAt_Is_In_The_Past()
-        {
-            var message = new ScheduleJobMessage
-            {
-                SubscriptionName = "foo",
-                JobUid = "unique id 1234",
-                Schedule = new JobSchedule
-                {
-                    StartAt = DateTime.Now,
-                }
-            };
-
-            scheduledJobBuilder.Invoking(y => y.AssertInputIsValid(message))
-                .Should().Throw<ArgumentException>()
-                .Where(m => m.Message.Contains("StartAt"));
         }
 
         [Test]

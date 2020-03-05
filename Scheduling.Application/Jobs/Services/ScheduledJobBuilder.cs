@@ -42,11 +42,6 @@ namespace Scheduling.Application.Jobs.Services
                 throw new ArgumentException($"Scheduling RepeatInterval time must be a greater then or equal to {SchedulingConstants.MinimumRepeatIntervalInMs}ms");
             }
 
-            if (scheduleJobMessage.Schedule.StartAt < DateTime.Now)
-            {
-                throw new ArgumentException("StartAt cannot be a date in the past");
-            }
-
             if (scheduleJobMessage.Schedule.EndAt.HasValue && scheduleJobMessage.Schedule.EndAt < DateTime.Now)
             {
                 throw new ArgumentException("EndAt cannot be a date in the past");
