@@ -32,7 +32,7 @@ namespace Scheduling.Application.Functions
             }
             catch (Exception e)
             {
-                logger.LogError(e, $"Unable to add job. Message: {body}");
+                logger.LogError(e, $"Unable to add or update job. Message: {body}");
             }
         }
     }
