@@ -9,5 +9,7 @@ namespace Scheduling.SharedPackage.Messages
         public string JobUid { get; set; }
         public string SubscriptionName { get; set; }
         public JobSchedule Schedule { get; set; }
+
+        public override string ToString() => $"JobUid: {JobUid}, SubscriptionId: {SubscriptionName}, Schedule: {Schedule}";
     }
 }

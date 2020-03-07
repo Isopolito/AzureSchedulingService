@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using Quartz;
 using Quartz.Impl;
 using Quartz.Logging;
@@ -53,14 +52,22 @@ namespace Scheduling.Application.Scheduling
 
         public async Task AddOrUpdateJob(ScheduleJobMessage scheduleJobMessage, CancellationToken ct)
         {
-            scheduledJobBuilder.AssertInputIsValid(scheduleJobMessage);
+            var jobResult = scheduledJobBuilder.BuildJob(scheduleJobMessage);
+            if (jobResult.IsFailure)
+            {
+                logger.LogError($"Unable to build job: {jobResult.Error}. Message: {scheduleJobMessage}");
+                return;
+            }
+
+            var triggerResult = scheduledJobBuilder.BuildTrigger(scheduleJobMessage.JobUid, scheduleJobMessage.SubscriptionName, scheduleJobMessage.Schedule);
+            if (triggerResult.IsFailure)
+            {
+                logger.LogError($"Unable to build trigger: {triggerResult.Error}. Message: {scheduleJobMessage}");
+                return;
+            }
 
             await RemoveJobIfAlreadyExists(scheduleJobMessage.JobUid, scheduleJobMessage.SubscriptionName, ct);
-
-            var job = scheduledJobBuilder.BuildJob(scheduleJobMessage);
-            var trigger = scheduledJobBuilder.BuildTrigger(scheduleJobMessage.JobUid, scheduleJobMessage.SubscriptionName, scheduleJobMessage.Schedule);
-
-            await scheduler.ScheduleJob(job, trigger, ct);
+            await scheduler.ScheduleJob(jobResult.Value, triggerResult.Value, ct);
         }
 
         private async Task RemoveJobIfAlreadyExists(string jobUid, string subscriptionName, CancellationToken ct)

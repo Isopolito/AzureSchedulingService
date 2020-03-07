@@ -1,7 +1,5 @@
 using System;
 using FluentAssertions;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using NUnit.Framework;
 using Scheduling.Application.Jobs.Services;
 using Scheduling.SharedPackage.Messages;
@@ -9,19 +7,18 @@ using Scheduling.SharedPackage.Scheduling;
 
 namespace Scheduling.UnitTests.ScheduledJobs
 {
-    public class InputSpecs
+    public class BuildTriggerInputSpecs
     {
         private IScheduledJobBuilder scheduledJobBuilder;
 
         [SetUp]
         public void Setup()
         {
-            var nullLogger = new Logger<ScheduledJobBuilder>(new NullLoggerFactory());
-            scheduledJobBuilder = new ScheduledJobBuilder(nullLogger);
+            scheduledJobBuilder = new ScheduledJobBuilder();
         }
 
         [Test]
-        public void Throw_Exception_If_Schedule_Is_Missing()
+        public void BuildTrigger_Throw_Exception_If_Schedule_Is_Missing()
         {
             var message = new ScheduleJobMessage
             {
@@ -30,52 +27,8 @@ namespace Scheduling.UnitTests.ScheduledJobs
                 Schedule = null,
             };
 
-            scheduledJobBuilder.Invoking(y => y.AssertInputIsValid(message))
-                .Should().Throw<ArgumentException>();
-        }
-
-        [Test]
-        public void Throw_Exception_If_SubscriptionName_Is_Null()
-        {
-            var message = new ScheduleJobMessage
-            {
-                SubscriptionName = null,
-                JobUid = "unique id 1234",
-                Schedule = new JobSchedule(),
-            };
-
-            scheduledJobBuilder.Invoking(y => y.AssertInputIsValid(message))
-                .Should().Throw<ArgumentException>();
-        }
-
-        [Test]
-        public void Throw_Exception_If_SubscriptionName_Is_Empty()
-        {
-            var message = new ScheduleJobMessage
-            {
-                SubscriptionName = string.Empty,
-                JobUid = "unique id 1234",
-                Schedule = new JobSchedule(),
-            };
-
-            scheduledJobBuilder.Invoking(y => y.AssertInputIsValid(message))
-                .Should().Throw<ArgumentException>()
-                .Where(m => m.Message.Contains("SubscriptionName"));
-        }
-
-        [Test]
-        public void Throw_Exception_If_JobUid_Is_Missing()
-        {
-            var message = new ScheduleJobMessage
-            {
-                SubscriptionName = "foo",
-                JobUid = null,
-                Schedule = new JobSchedule(),
-            };
-
-            scheduledJobBuilder.Invoking(y => y.AssertInputIsValid(message))
-                .Should().Throw<ArgumentException>()
-                .Where(m => m.Message.Contains("JobUid"));
+            var result = scheduledJobBuilder.BuildJob(message);
+            result.Error.Should().Contain("Schedule property is required ");
         }
 
         [Test]
@@ -92,9 +45,8 @@ namespace Scheduling.UnitTests.ScheduledJobs
                 }
             };
 
-            scheduledJobBuilder.Invoking(y => y.AssertInputIsValid(message))
-                .Should().Throw<ArgumentException>()
-                .Where(m => m.Message.Contains("EndAt"));
+            var result = scheduledJobBuilder.BuildTrigger(message.JobUid, message.SubscriptionName, message.Schedule);
+            result.Error.Should().Contain("EndAt cannot be a date in the past");
         }
 
         [Test]
@@ -111,11 +63,9 @@ namespace Scheduling.UnitTests.ScheduledJobs
                 }
             };
 
-            scheduledJobBuilder.Invoking(y => y.AssertInputIsValid(message))
-                .Should().Throw<ArgumentException>()
-                .Where(m => m.Message.Contains("RepeatCount must also have"));
+            var result = scheduledJobBuilder.BuildTrigger(message.JobUid, message.SubscriptionName, message.Schedule);
+            result.Error.Should().Contain("RepeatCount must also have a RepeatInterval");
         }
-
 
         [Test]
         public void Throw_Exception_If_Scheduled_StartAt_Is_In_The_Past_And_Job_Is_Not_Repeating()
@@ -130,9 +80,8 @@ namespace Scheduling.UnitTests.ScheduledJobs
                 }
             };
 
-            scheduledJobBuilder.Invoking(y => y.AssertInputIsValid(message))
-                .Should().Throw<ArgumentException>()
-                .Where(m => m.Message.Contains("StartAt"));
+            var result = scheduledJobBuilder.BuildTrigger(message.JobUid, message.SubscriptionName, message.Schedule);
+            result.Error.Should().Contain("StartAt cannot be a date in the past if the job is not set to repeat");
         }
 
         [Test]
@@ -149,9 +98,8 @@ namespace Scheduling.UnitTests.ScheduledJobs
                 }
             };
 
-            scheduledJobBuilder.Invoking(y => y.AssertInputIsValid(message))
-                .Should().Throw<ArgumentException>()
-                .Where(m => m.Message.Contains("RepeatCount"));
+            var result = scheduledJobBuilder.BuildTrigger(message.JobUid, message.SubscriptionName, message.Schedule);
+            result.Error.Should().Contain("Scheduled RepeatCount cannot be a negative number");
         }
 
         [Test]
@@ -168,9 +116,8 @@ namespace Scheduling.UnitTests.ScheduledJobs
                 }
             };
 
-            scheduledJobBuilder.Invoking(y => y.AssertInputIsValid(message))
-                .Should().Throw<ArgumentException>()
-                .Where(m => m.Message.Contains("RepeatInterval"));
+            var result = scheduledJobBuilder.BuildTrigger(message.JobUid, message.SubscriptionName, message.Schedule);
+            result.Error.Should().Contain("Scheduling RepeatInterval time must be a greater then or equal to");
         }
     }
 }

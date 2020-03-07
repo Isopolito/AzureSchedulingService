@@ -1,6 +1,5 @@
 ﻿using System;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
+using CSharpFunctionalExtensions;
 using Quartz;
 using Scheduling.Application.Constants;
 using Scheduling.SharedPackage.Messages;
@@ -10,101 +9,104 @@ namespace Scheduling.Application.Jobs.Services
 {
     public class ScheduledJobBuilder : IScheduledJobBuilder
     {
-        private readonly ILogger<ScheduledJobBuilder> logger;
-
-        public ScheduledJobBuilder(ILogger<ScheduledJobBuilder> logger)
+        public Result<IJobDetail> BuildJob(ScheduleJobMessage scheduleJobMessage)
         {
-            this.logger = logger;
+            var inputErrorMessage = ValidateJobBuilderInput(scheduleJobMessage);
+            if (!string.IsNullOrEmpty(inputErrorMessage)) return Result.Failure<IJobDetail>(inputErrorMessage);
+
+            return Result.Success(
+                JobBuilder.Create<ScheduledJob>()
+                    .WithIdentity(scheduleJobMessage.JobUid, scheduleJobMessage.SubscriptionName)
+                    .UsingJobData(SchedulingConstants.JobUid, scheduleJobMessage.JobUid)
+                    .UsingJobData(SchedulingConstants.SubscriptionName, scheduleJobMessage.SubscriptionName)
+                    .Build());
         }
 
-        public IJobDetail BuildJob(ScheduleJobMessage scheduleJobMessage)
-            => JobBuilder.Create<ScheduledJob>()
-                .WithIdentity(scheduleJobMessage.JobUid, scheduleJobMessage.SubscriptionName)
-                .UsingJobData(SchedulingConstants.JobUid, scheduleJobMessage.JobUid)
-                .UsingJobData(SchedulingConstants.SubscriptionName, scheduleJobMessage.SubscriptionName)
-                .Build();
+        public Result<ITrigger> BuildTrigger(string jobUid, string subscriptionName, JobSchedule schedule)
+        {
+            var inputErrorMessage = ValidateTriggerBuilderInput(schedule);
+            if (!string.IsNullOrEmpty(inputErrorMessage)) return Result.Failure<ITrigger>(inputErrorMessage);
 
-        public void AssertInputIsValid(ScheduleJobMessage scheduleJobMessage)
+            if (!string.IsNullOrEmpty(schedule.CronOverride))
+            {
+                return Result.Success(
+                    TriggerBuilder.Create()
+                        .WithIdentity(jobUid, subscriptionName)
+                        .WithCronSchedule(schedule.CronOverride)
+                        .Build());
+            }
+
+            var trigger = TriggerBuilder.Create()
+                .WithIdentity(jobUid, subscriptionName)
+                .StartAt(schedule.StartAt);
+
+            if (schedule.EndAt.HasValue)
+            {
+                trigger.EndAt(schedule.EndAt);
+            }
+
+            var simpleSchedule = SimpleScheduleBuilder.Create();
+            if (schedule.RepeatCount > 0)
+            {
+                simpleSchedule.WithRepeatCount(schedule.RepeatCount);
+            }
+
+            if (schedule.RepeatInterval.HasValue)
+            {
+                simpleSchedule.WithInterval(schedule.RepeatInterval.Value);
+            }
+
+            trigger.WithSchedule(simpleSchedule);
+
+            return Result.Success(trigger.Build());
+        }
+
+        private static string ValidateJobBuilderInput(ScheduleJobMessage scheduleJobMessage)
         {
             if (string.IsNullOrEmpty(scheduleJobMessage.JobUid) || string.IsNullOrEmpty(scheduleJobMessage.SubscriptionName))
             {
-                throw new ArgumentException("JobUid and SubscriptionName are required for scheduling a job");
+                return "JobUid and SubscriptionName are required for scheduling a job";
             }
 
             if (scheduleJobMessage.Schedule == null)
             {
-                throw new ArgumentException("Schedule property is required in order to schedule job");
+                return "Schedule property is required in order to schedule job";
             }
 
-            if (scheduleJobMessage.Schedule.RepeatInterval.HasValue 
-                && scheduleJobMessage.Schedule.RepeatInterval.Value < TimeSpan.FromMilliseconds(SchedulingConstants.MinimumRepeatIntervalInMs))
-            {
-                throw new ArgumentException($"Scheduling RepeatInterval time must be a greater then or equal to {SchedulingConstants.MinimumRepeatIntervalInMs}ms");
-            }
-
-            if (scheduleJobMessage.Schedule.RepeatCount > 0 && !scheduleJobMessage.Schedule.RepeatInterval.HasValue)
-            {
-                throw new ArgumentException("A RepeatCount must also have a RepeatInterval provided");
-            }
-
-            if (string.IsNullOrEmpty(scheduleJobMessage.Schedule.CronOverride)
-                && scheduleJobMessage.Schedule.StartAt < DateTime.Now && scheduleJobMessage.Schedule.RepeatCount < 1)
-            {
-                throw new ArgumentException("StartAt cannot be a date in the past if the job is not set to repeat");
-            }
-
-            if (scheduleJobMessage.Schedule.EndAt.HasValue && scheduleJobMessage.Schedule.EndAt < DateTime.Now)
-            {
-                throw new ArgumentException("EndAt cannot be a date in the past");
-            }
-
-            if (scheduleJobMessage.Schedule.RepeatCount < 0)
-            {
-                throw new ArgumentException("Scheduled RepeatCount cannot be a negative number");
-            }
+            return null;
         }
 
-        public ITrigger BuildTrigger(string jobUid, string subscriptionName, JobSchedule schedule)
+        private static string ValidateTriggerBuilderInput(JobSchedule schedule)
         {
-            try
+            if (schedule == null) return "Schedule property is required in order to schedule job";
+
+            if (schedule.RepeatInterval.HasValue
+                && schedule.RepeatInterval.Value < TimeSpan.FromMilliseconds(SchedulingConstants.MinimumRepeatIntervalInMs))
             {
-                if (!string.IsNullOrEmpty(schedule.CronOverride))
-                {
-                    return TriggerBuilder.Create()
-                        .WithIdentity(jobUid, subscriptionName)
-                        .WithCronSchedule(schedule.CronOverride)
-                        .Build();
-                }
-
-                var trigger = TriggerBuilder.Create()
-                    .WithIdentity(jobUid, subscriptionName)
-                    .StartAt(schedule.StartAt);
-
-                if (schedule.EndAt.HasValue)
-                {
-                    trigger.EndAt(schedule.EndAt);
-                }
-
-                var simpleSchedule = SimpleScheduleBuilder.Create();
-                if (schedule.RepeatCount > 0)
-                {
-                    simpleSchedule.WithRepeatCount(schedule.RepeatCount);
-                }
-
-                if (schedule.RepeatInterval.HasValue)
-                {
-                    simpleSchedule.WithInterval(schedule.RepeatInterval.Value);
-                }
-
-                trigger.WithSchedule(simpleSchedule);
-
-                return trigger.Build();
+                return $"Scheduling RepeatInterval time must be a greater then or equal to {SchedulingConstants.MinimumRepeatIntervalInMs}ms";
             }
-            catch (Exception e)
+
+            if (schedule.RepeatCount > 0 && !schedule.RepeatInterval.HasValue)
             {
-                logger.LogError(e, $"Unable to create trigger for jobUid {jobUid}, subscriptionName {subscriptionName}. Schedule: {JsonConvert.SerializeObject(schedule)}");
-                throw;
+                return "A RepeatCount must also have a RepeatInterval provided";
             }
+
+            if (string.IsNullOrEmpty(schedule.CronOverride) && schedule.StartAt < DateTime.Now && schedule.RepeatCount < 1)
+            {
+                return "StartAt cannot be a date in the past if the job is not set to repeat";
+            }
+
+            if (schedule.EndAt.HasValue && schedule.EndAt < DateTime.Now)
+            {
+                return "EndAt cannot be a date in the past";
+            }
+
+            if (schedule.RepeatCount < 0)
+            {
+                return "Scheduled RepeatCount cannot be a negative number";
+            }
+
+            return null;
         }
     }
 }

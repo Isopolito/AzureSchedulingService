@@ -12,5 +12,7 @@ namespace Scheduling.SharedPackage.Scheduling
         // If provided, will be used instead of above scheduling properties
         // https://www.freeformatter.com/cron-expression-generator-quartz.html
         public string CronOverride { get; set; }
+
+        public override string ToString() => $"StartAt: {StartAt}, EndAt: {EndAt}, RepeatCount: {RepeatCount}, RepeatInterval: {RepeatInterval}, CronOverride: {CronOverride}";
     }
 }
