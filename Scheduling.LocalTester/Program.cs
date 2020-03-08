@@ -40,9 +40,9 @@ namespace Scheduling.LocalTester
 
             while (true)
             {
-                //Console.ReadKey();
+                Console.ReadKey();
 
-                var jobUid = DateTime.Now.ToString();
+                var jobUid = $"This is a uid - {DateTime.Now}";
                 Thread.Sleep(1);
                 //await SendDeleteJobMessagesToQueueAsync(deleteJobQueueClient, jobUid);
                 await SendAddJobMessagesToQueueAsync(addJobQueueClient, jobUid);
