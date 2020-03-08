@@ -45,6 +45,6 @@ Test:
 to handle this?
 
 1. What happens if scheduler is stopped then started again after a period of time? Should all the unrun jobs be executed at once
-or should there be a flag in the message says: "Don't run if execution time is > x minutes"
+or should there be a flag in the message says: "Don't run if execution time is > x minutes in the past"
 
 2. What happens if messages back up in the queue for some reason and all get processed at once?
