@@ -81,6 +81,8 @@ namespace Scheduling.UnitTests.ScheduledJobs
             };
 
             var result = scheduledJobBuilder.BuildTrigger(message.JobUid, message.SubscriptionName, message.Schedule);
+
+            result.IsFailure.Should().BeTrue();
             result.Error.Should().Contain("StartAt cannot be a date in the past if the job is not set to repeat");
         }
 

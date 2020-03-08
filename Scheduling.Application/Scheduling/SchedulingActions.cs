@@ -55,14 +55,14 @@ namespace Scheduling.Application.Scheduling
             var jobResult = scheduledJobBuilder.BuildJob(scheduleJobMessage);
             if (jobResult.IsFailure)
             {
-                logger.LogError($"Unable to build job: {jobResult.Error}. Message: {scheduleJobMessage}");
+                logger.LogError($"{jobResult.Error}. Message: {scheduleJobMessage}");
                 return;
             }
 
             var triggerResult = scheduledJobBuilder.BuildTrigger(scheduleJobMessage.JobUid, scheduleJobMessage.SubscriptionName, scheduleJobMessage.Schedule);
             if (triggerResult.IsFailure)
             {
-                logger.LogError($"Unable to build trigger: {triggerResult.Error}. Message: {scheduleJobMessage}");
+                logger.LogError($"{triggerResult.Error}. Message: {scheduleJobMessage}");
                 return;
             }
 
