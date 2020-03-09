@@ -41,8 +41,7 @@ This is the high level design of how it works
 
 Test:
 
-***  Don't want jobs to somehow back up and then run all at once and possible spam services. How to implement some sort of throttlig or mechanism
-to handle this?
+***  Don't want jobs to somehow back up and then run all at once and possibly spam consuming services. How to implement some sort of throttlig or mechanism to handle this?
 
 1. What happens if scheduler is stopped then started again after a period of time? Should all the unrun jobs be executed at once
 or should there be a flag in the message says: "Don't run if execution time is > x minutes in the past"
