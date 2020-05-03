@@ -1,4 +1,5 @@
-﻿using CSharpFunctionalExtensions;
+﻿using System.Collections.Generic;
+using CSharpFunctionalExtensions;
 using Quartz;
 using Scheduling.SharedPackage.Messages;
 using Scheduling.SharedPackage.Scheduling;

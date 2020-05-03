@@ -1,4 +1,5 @@
 ﻿using System;
+using Scheduling.SharedPackage.Enums;
 
 namespace Scheduling.SharedPackage.Scheduling
 {
@@ -7,12 +8,9 @@ namespace Scheduling.SharedPackage.Scheduling
         public DateTime StartAt { get; set; }
         public DateTime? EndAt { get; set; }
         public int RepeatCount { get; set; }
-        public TimeSpan? RepeatInterval { get; set; }
+        public RepeatIntervals RepeatInterval { get; set; }
+        public RepeatEndStrategy RepeatEndStrategy { get; set; }
 
-        // If provided, will be used instead of above scheduling properties
-        // https://www.freeformatter.com/cron-expression-generator-quartz.html
-        public string CronOverride { get; set; }
-
-        public override string ToString() => $"StartAt: {StartAt}, EndAt: {EndAt}, RepeatCount: {RepeatCount}, RepeatInterval: {RepeatInterval}, CronOverride: {CronOverride}";
+        public override string ToString() => $"StartAt: {StartAt}, EndAt: {EndAt}, RepeatCount: {RepeatCount}, RepeatInterval: {RepeatInterval}";
     }
 }

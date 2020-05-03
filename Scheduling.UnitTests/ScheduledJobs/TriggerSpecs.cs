@@ -2,6 +2,8 @@ using System;
 using FluentAssertions;
 using NUnit.Framework;
 using Scheduling.Application.Jobs.Services;
+using Scheduling.Application.Scheduling;
+using Scheduling.SharedPackage.Enums;
 using Scheduling.SharedPackage.Messages;
 using Scheduling.SharedPackage.Scheduling;
 
@@ -15,7 +17,8 @@ namespace Scheduling.UnitTests.ScheduledJobs
         [SetUp]
         public void Setup()
         {
-            scheduledJobBuilder = new ScheduledJobBuilder();
+            var cronExpressionGenerator = new CronExpressionGenerator();
+            scheduledJobBuilder = new ScheduledJobBuilder(cronExpressionGenerator);
             defaultMessage = new ScheduleJobMessage
             {
                 JobUid = "unique id 1234",
@@ -46,28 +49,84 @@ namespace Scheduling.UnitTests.ScheduledJobs
             {
                 EndAt = endAt,
                 StartAt = DateTime.Now.AddMinutes(5),
+                RepeatInterval = RepeatIntervals.Quarterly,
+                RepeatEndStrategy = RepeatEndStrategy.AfterEndDate,
             };
 
             var trigger = scheduledJobBuilder
-                    .BuildTrigger(defaultMessage.JobUid, defaultMessage.SubscriptionName, defaultMessage.Schedule)
-                    .Value;
+                .BuildTrigger(defaultMessage.JobUid, defaultMessage.SubscriptionName, defaultMessage.Schedule)
+                .Value;
 
             trigger.EndTimeUtc.Should().Be(endAt.ToUniversalTime());
         }
 
         [Test]
-        public void No_EndDate_In_Message_Schedule_Means_No_EndTime_In_Trigger()
+        public void Repeat_Count_In_Message_Sets_End_Date()
         {
             defaultMessage.Schedule = new JobSchedule
             {
                 StartAt = DateTime.Now.AddMinutes(5),
+                RepeatInterval = RepeatIntervals.BiMonthly,
+                RepeatEndStrategy = RepeatEndStrategy.AfterOccurrenceNumber,
+                RepeatCount = 5,
             };
 
             var trigger = scheduledJobBuilder
-                    .BuildTrigger(defaultMessage.JobUid, defaultMessage.SubscriptionName, defaultMessage.Schedule)
-                    .Value;
+                .BuildTrigger(defaultMessage.JobUid, defaultMessage.SubscriptionName, defaultMessage.Schedule)
+                .Value;
+
+            trigger.EndTimeUtc.Should().HaveValue();
+        }
+
+        [Test]
+        public void No_Repeat_Interval_Means_No_EndDate()
+        {
+            defaultMessage.Schedule = new JobSchedule
+            {
+                StartAt = DateTime.Now.AddMinutes(5),
+                RepeatEndStrategy = RepeatEndStrategy.Never,
+            };
+
+            var trigger = scheduledJobBuilder
+                .BuildTrigger(defaultMessage.JobUid, defaultMessage.SubscriptionName, defaultMessage.Schedule)
+                .Value;
 
             trigger.EndTimeUtc.Should().BeNull();
+        }
+
+        [Test]
+        public void No_Repeat_Strategy_Means_No_EndDate()
+        {
+            defaultMessage.Schedule = new JobSchedule
+            {
+                StartAt = DateTime.Now.AddMinutes(5),
+                RepeatInterval = RepeatIntervals.Monthly,
+                RepeatEndStrategy = RepeatEndStrategy.Never,
+            };
+
+            var trigger = scheduledJobBuilder
+                .BuildTrigger(defaultMessage.JobUid, defaultMessage.SubscriptionName, defaultMessage.Schedule)
+                .Value;
+
+            trigger.EndTimeUtc.Should().BeNull();
+        }
+
+        [Test]
+        public void Repeat_Interval_But_No_Repeat_Strategy()
+        {
+            defaultMessage.Schedule = new JobSchedule
+            {
+                StartAt = DateTime.Now.AddMinutes(30)
+            };
+
+            //var trigger = scheduledJobBuilder
+            //        .BuildTrigger(defaultMessage.JobUid, defaultMessage.SubscriptionName, defaultMessage.Schedule)
+            //        .Value as Quartz.Impl.Triggers.SimpleTriggerImpl;
+
+            //trigger.Name.Should().Be(defaultMessage.JobUid);
+            //trigger.Group.Should().Be(defaultMessage.SubscriptionName);
+
+            throw new Exception("Figure this scenario out");
         }
 
         [Test]
@@ -79,59 +138,80 @@ namespace Scheduling.UnitTests.ScheduledJobs
             };
 
             var trigger = scheduledJobBuilder
-                    .BuildTrigger(defaultMessage.JobUid, defaultMessage.SubscriptionName, defaultMessage.Schedule)
-                    .Value as Quartz.Impl.Triggers.SimpleTriggerImpl;
+                .BuildTrigger(defaultMessage.JobUid, defaultMessage.SubscriptionName, defaultMessage.Schedule)
+                .Value as Quartz.Impl.Triggers.SimpleTriggerImpl;
 
             trigger.Name.Should().Be(defaultMessage.JobUid);
             trigger.Group.Should().Be(defaultMessage.SubscriptionName);
         }
 
         [Test]
-        public void Repeat_Count_In_Trigger_Is_Same_As_In_Message()
+        public void BuildTrigger_Throw_Exception_If_Schedule_Is_Missing()
         {
-            defaultMessage.Schedule = new JobSchedule
+            var message = new ScheduleJobMessage
             {
-                RepeatCount = 99,
-                RepeatInterval = TimeSpan.FromDays(2),
+                JobUid = "unique id 1234",
+                SubscriptionName = "foo",
+                Schedule = null,
             };
 
-            var trigger = scheduledJobBuilder
-                    .BuildTrigger(defaultMessage.JobUid, defaultMessage.SubscriptionName, defaultMessage.Schedule)
-                    .Value as Quartz.Impl.Triggers.SimpleTriggerImpl;
-
-            trigger.RepeatCount.Should().Be(defaultMessage.Schedule.RepeatCount);
+            var result = scheduledJobBuilder.BuildJob(message);
+            result.Error.Should().Contain("Schedule property is required ");
         }
 
         [Test]
-        public void Interval_Minutes_In_Trigger_Is_Same_As_In_Message()
+        public void Throw_Exception_If_Scheduled_EndAt_Is_In_The_Past()
         {
-            defaultMessage.Schedule = new JobSchedule
+            var message = new ScheduleJobMessage
             {
-                RepeatInterval = TimeSpan.FromMinutes(25),
-                RepeatCount = 3,
+                SubscriptionName = "foo",
+                JobUid = "unique id 1234",
+                Schedule = new JobSchedule
+                {
+                    EndAt = DateTime.Now.AddMinutes(-1),
+                    StartAt = DateTime.Now.AddMinutes(1),
+                }
             };
 
-            var trigger = scheduledJobBuilder
-                .BuildTrigger(defaultMessage.JobUid, defaultMessage.SubscriptionName, defaultMessage.Schedule)
-                .Value as Quartz.Impl.Triggers.SimpleTriggerImpl;
-
-            trigger.RepeatInterval.Should().Be(TimeSpan.FromMinutes(25));
+            var result = scheduledJobBuilder.BuildTrigger(message.JobUid, message.SubscriptionName, message.Schedule);
+            result.Error.Should().Contain("EndAt cannot be a date in the past");
         }
 
         [Test]
-        public void Cron_Job_String_Is_Used_When_Provided_In_Message()
+        public void Throw_Exception_If_Scheduled_StartAt_Is_In_The_Past_And_Job_Is_Not_Repeating()
         {
-            defaultMessage.Schedule = new JobSchedule
+            var message = new ScheduleJobMessage
             {
-                RepeatInterval = TimeSpan.FromMinutes(25),
-                CronOverride = "0,24 0,33 0 3,18,22 JAN,MAR,NOV ? *",
+                SubscriptionName = "foo",
+                JobUid = "unique id 1234",
+                Schedule = new JobSchedule
+                {
+                    StartAt = DateTime.Now.AddMinutes(-5),
+                }
             };
 
-            var trigger = scheduledJobBuilder
-                .BuildTrigger(defaultMessage.JobUid, defaultMessage.SubscriptionName, defaultMessage.Schedule)
-                .Value as Quartz.Impl.Triggers.CronTriggerImpl;
+            var result = scheduledJobBuilder.BuildTrigger(message.JobUid, message.SubscriptionName, message.Schedule);
 
-            trigger.CronExpressionString.Should().Be(defaultMessage.Schedule.CronOverride);
+            result.IsFailure.Should().BeTrue();
+            result.Error.Should().Contain("StartAt cannot be a date in the past if the job is not set to repeat");
+        }
+
+        [Test]
+        public void Throw_Exception_If_RepeatCount_Is_Negative()
+        {
+            var message = new ScheduleJobMessage
+            {
+                SubscriptionName = "foo",
+                JobUid = "unique id 1234",
+                Schedule = new JobSchedule
+                {
+                    RepeatCount = -1,
+                    StartAt = DateTime.Now.AddMinutes(5),
+                }
+            };
+
+            var result = scheduledJobBuilder.BuildTrigger(message.JobUid, message.SubscriptionName, message.Schedule);
+            result.Error.Should().Contain("Scheduled RepeatCount cannot be a negative number");
         }
     }
 }

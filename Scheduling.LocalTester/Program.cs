@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
+using Scheduling.SharedPackage.Enums;
 using Scheduling.SharedPackage.Messages;
 using Scheduling.SharedPackage.Scheduling;
 
@@ -80,7 +81,7 @@ namespace Scheduling.LocalTester
                     RepeatCount = 99,
                     StartAt = DateTime.Now,
                     EndAt = DateTime.Now.AddMinutes(15),
-                    RepeatInterval = TimeSpan.FromMinutes(1),
+                    RepeatInterval = RepeatIntervals.Never,
                 };
 
                 var scheduleJobMessage = new ScheduleJobMessage

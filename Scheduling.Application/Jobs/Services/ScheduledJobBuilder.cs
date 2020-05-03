@@ -1,7 +1,11 @@
 ﻿using System;
 using CSharpFunctionalExtensions;
 using Quartz;
+using Quartz.Impl.Calendar;
+using Quartz.Spi;
 using Scheduling.Application.Constants;
+using Scheduling.Application.Scheduling;
+using Scheduling.SharedPackage.Enums;
 using Scheduling.SharedPackage.Messages;
 using Scheduling.SharedPackage.Scheduling;
 
@@ -9,6 +13,13 @@ namespace Scheduling.Application.Jobs.Services
 {
     public class ScheduledJobBuilder : IScheduledJobBuilder
     {
+        private readonly ICronExpressionGenerator cronExpressionGenerator;
+
+        public ScheduledJobBuilder(ICronExpressionGenerator cronExpressionGenerator)
+        {
+            this.cronExpressionGenerator = cronExpressionGenerator;
+        }
+
         public Result<IJobDetail> BuildJob(ScheduleJobMessage scheduleJobMessage)
             => ValidateJobBuilderInput(scheduleJobMessage)
                 .OnFailureCompensate(error => Result.Failure($"Unable to build job: {error}"))
@@ -21,42 +32,29 @@ namespace Scheduling.Application.Jobs.Services
         public Result<ITrigger> BuildTrigger(string jobUid, string subscriptionName, JobSchedule schedule)
             => ValidateTriggerBuilderInput(schedule)
                 .OnFailureCompensate(error => Result.Failure($"Unable to build trigger: {error}"))
-                .OnSuccessTry(() => string.IsNullOrEmpty(schedule.CronOverride) 
-                    ? BuildScheduleConfiguredTrigger(jobUid, subscriptionName, schedule) 
-                    : BuildCronConfiguredTrigger(jobUid, subscriptionName, schedule));
+                .OnSuccessTry(() => BuildScheduleTrigger(jobUid, subscriptionName, schedule));
 
-        private static ITrigger BuildScheduleConfiguredTrigger(string jobUid, string subscriptionName, JobSchedule schedule)
+        private ITrigger BuildScheduleTrigger(string jobUid, string subscriptionName, JobSchedule schedule)
         {
             var trigger = TriggerBuilder.Create()
                 .WithIdentity(jobUid, subscriptionName)
+                .WithCronSchedule(cronExpressionGenerator.Create(schedule))
                 .StartAt(schedule.StartAt);
 
-            if (schedule.EndAt.HasValue)
+            if (schedule.RepeatEndStrategy == RepeatEndStrategy.AfterEndDate && schedule.EndAt.HasValue)
             {
                 trigger.EndAt(schedule.EndAt);
             }
-
-            var simpleSchedule = SimpleScheduleBuilder.Create();
-            if (schedule.RepeatCount > 0)
+            else if (schedule.RepeatEndStrategy == RepeatEndStrategy.AfterOccurrenceNumber && schedule.RepeatCount > 0)
             {
-                simpleSchedule.WithRepeatCount(schedule.RepeatCount);
-            }
+                var endDate = TriggerUtils.ComputeEndTimeToAllowParticularNumberOfFirings(trigger as IOperableTrigger,
+                  new BaseCalendar(), schedule.RepeatCount);
 
-            if (schedule.RepeatInterval.HasValue)
-            {
-                simpleSchedule.WithInterval(schedule.RepeatInterval.Value);
+                trigger.EndAt(endDate);
             }
-
-            trigger.WithSchedule(simpleSchedule);
 
             return trigger.Build();
         }
-
-        private static ITrigger BuildCronConfiguredTrigger(string jobUid, string subscriptionName, JobSchedule schedule)
-            => TriggerBuilder.Create()
-                .WithIdentity(jobUid, subscriptionName)
-                .WithCronSchedule(schedule.CronOverride)
-                .Build();
 
         private static Result ValidateJobBuilderInput(ScheduleJobMessage scheduleJobMessage)
         {
@@ -76,22 +74,6 @@ namespace Scheduling.Application.Jobs.Services
         private static Result ValidateTriggerBuilderInput(JobSchedule schedule)
         {
             if (schedule == null) return Result.Failure("Schedule property is required in order to schedule job");
-
-            if (schedule.RepeatInterval.HasValue
-                && schedule.RepeatInterval.Value < TimeSpan.FromMilliseconds(SchedulingConstants.MinimumRepeatIntervalInMs))
-            {
-                return Result.Failure($"Scheduling RepeatInterval time must be a greater then or equal to {SchedulingConstants.MinimumRepeatIntervalInMs}ms");
-            }
-
-            if (schedule.RepeatCount > 0 && !schedule.RepeatInterval.HasValue)
-            {
-                return Result.Failure("A RepeatCount must also have a RepeatInterval provided");
-            }
-
-            if (string.IsNullOrEmpty(schedule.CronOverride) && schedule.StartAt < DateTime.Now && schedule.RepeatCount < 1)
-            {
-                return Result.Failure("StartAt cannot be a date in the past if the job is not set to repeat");
-            }
 
             if (schedule.EndAt.HasValue && schedule.EndAt < DateTime.Now)
             {
