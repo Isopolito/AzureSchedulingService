@@ -1,7 +1,6 @@
 ﻿using System;
 using CSharpFunctionalExtensions;
 using Quartz;
-using Quartz.Impl.Calendar;
 using Quartz.Spi;
 using Scheduling.Application.Constants;
 using Scheduling.Application.Scheduling;
@@ -36,25 +35,29 @@ namespace Scheduling.Application.Jobs.Services
 
         private ITrigger BuildScheduleTrigger(string jobUid, string subscriptionName, JobSchedule schedule)
         {
-            var trigger = TriggerBuilder.Create()
-                .WithIdentity(jobUid, subscriptionName)
-                //.WithCronSchedule(cronExpressionGenerator.Create(schedule))
-                .StartAt(schedule.StartAt);
+            var trigger = BuildBaseTrigger(jobUid, subscriptionName, schedule);
 
             if (schedule.RepeatEndStrategy == RepeatEndStrategy.AfterEndDate && schedule.EndAt.HasValue)
             {
                 trigger.EndAt(schedule.EndAt);
-            }
+            } 
             else if (schedule.RepeatEndStrategy == RepeatEndStrategy.AfterOccurrenceNumber && schedule.RepeatCount > 0)
             {
-                var endDate = TriggerUtils.ComputeEndTimeToAllowParticularNumberOfFirings(trigger as IOperableTrigger,
-                  new BaseCalendar(), schedule.RepeatCount);
-
+                // the trigger must first be built in order to calculate end date from repeat count 
+                var builtTrigger = trigger.Build();
+                var endDate = TriggerUtils.ComputeEndTimeToAllowParticularNumberOfFirings(builtTrigger as IOperableTrigger, null, schedule.RepeatCount);
+                trigger = BuildBaseTrigger(jobUid, subscriptionName, schedule);
                 trigger.EndAt(endDate);
             }
 
             return trigger.Build();
         }
+
+        private TriggerBuilder BuildBaseTrigger(string jobUid, string subscriptionName, JobSchedule schedule) 
+            => TriggerBuilder.Create()
+                .WithIdentity(jobUid, subscriptionName)
+                .WithCronSchedule(cronExpressionGenerator.Create(schedule))
+                .StartAt(schedule.StartAt);
 
         private static Result ValidateJobBuilderInput(ScheduleJobMessage scheduleJobMessage)
         {
@@ -83,6 +86,12 @@ namespace Scheduling.Application.Jobs.Services
             if (schedule.RepeatCount < 0)
             {
                 return Result.Failure("Scheduled RepeatCount cannot be a negative number");
+            }
+
+            if (schedule.RepeatEndStrategy == RepeatEndStrategy.Never && schedule.RepeatInterval == RepeatIntervals.Never
+                && schedule.RepeatCount < 1)
+            {
+                return Result.Failure("StartAt cannot be in the past for non-repeating jobs");
             }
 
             return Result.Success();

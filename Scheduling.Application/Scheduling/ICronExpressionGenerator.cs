@@ -13,7 +13,7 @@ namespace Scheduling.Application.Scheduling
     {
         public string Create(JobSchedule jobSchedule)
         {
-            return "";
+            return "0 0 0 1/6 * ? *";
         }
     }
 }

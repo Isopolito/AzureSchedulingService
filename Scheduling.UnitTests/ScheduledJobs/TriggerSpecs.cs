@@ -29,7 +29,7 @@ namespace Scheduling.UnitTests.ScheduledJobs
         [Test]
         public void StartAt_On_Trigger_Should_Match_Whats_In_The_Message_Schedule()
         {
-            var startAt = DateTime.Now.AddMinutes(3);
+            var startAt = DateTime.Now.AddMinutes(3).ToUniversalTime();
             defaultMessage.Schedule = new JobSchedule
             {
                 StartAt = startAt,
@@ -38,7 +38,7 @@ namespace Scheduling.UnitTests.ScheduledJobs
             var trigger = scheduledJobBuilder
                 .BuildTrigger(defaultMessage.JobUid, defaultMessage.SubscriptionName, defaultMessage.Schedule)
                 .Value;
-            trigger.StartTimeUtc.Should().Be(startAt.ToUniversalTime());
+            trigger.StartTimeUtc.Should().BeCloseTo(startAt, 1000);
         }
 
         [Test]
@@ -139,7 +139,7 @@ namespace Scheduling.UnitTests.ScheduledJobs
 
             var trigger = scheduledJobBuilder
                 .BuildTrigger(defaultMessage.JobUid, defaultMessage.SubscriptionName, defaultMessage.Schedule)
-                .Value as Quartz.Impl.Triggers.SimpleTriggerImpl;
+                .Value as Quartz.Impl.Triggers.CronTriggerImpl;
 
             trigger.Name.Should().Be(defaultMessage.JobUid);
             trigger.Group.Should().Be(defaultMessage.SubscriptionName);
@@ -187,13 +187,15 @@ namespace Scheduling.UnitTests.ScheduledJobs
                 Schedule = new JobSchedule
                 {
                     StartAt = DateTime.Now.AddMinutes(-5),
+                    RepeatEndStrategy = RepeatEndStrategy.Never,
+                    RepeatInterval = RepeatIntervals.Never,
                 }
             };
 
             var result = scheduledJobBuilder.BuildTrigger(message.JobUid, message.SubscriptionName, message.Schedule);
 
             result.IsFailure.Should().BeTrue();
-            result.Error.Should().Contain("StartAt cannot be a date in the past if the job is not set to repeat");
+            result.Error.Should().Contain("StartAt cannot be in the past");
         }
 
         [Test]
