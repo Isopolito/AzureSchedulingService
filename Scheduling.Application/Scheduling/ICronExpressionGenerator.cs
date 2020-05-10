@@ -13,7 +13,7 @@ namespace Scheduling.Application.Scheduling
     {
         public string Create(JobSchedule jobSchedule)
         {
-            throw new System.NotImplementedException();
+            return "";
         }
     }
 }

@@ -38,7 +38,7 @@ namespace Scheduling.Application.Jobs.Services
         {
             var trigger = TriggerBuilder.Create()
                 .WithIdentity(jobUid, subscriptionName)
-                .WithCronSchedule(cronExpressionGenerator.Create(schedule))
+                //.WithCronSchedule(cronExpressionGenerator.Create(schedule))
                 .StartAt(schedule.StartAt);
 
             if (schedule.RepeatEndStrategy == RepeatEndStrategy.AfterEndDate && schedule.EndAt.HasValue)
