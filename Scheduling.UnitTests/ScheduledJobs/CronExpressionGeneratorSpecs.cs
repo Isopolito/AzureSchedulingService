@@ -18,7 +18,7 @@ namespace Scheduling.UnitTests.ScheduledJobs
         }
 
         [Test]
-        public void Start_At_5_5_2022_With_No_Interval()
+        public void Start_At_5_5_2022_With_No_Repeat_Strategy_Or_Interval()
         {
             var cronExpression = cronExpressionGenerator.Create(new JobSchedule
             {

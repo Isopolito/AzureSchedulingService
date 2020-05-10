@@ -4,9 +4,10 @@
     {
         Invalid = 0,
         Never = 1,
-        Weekly = 2,
-        BiMonthly = 3,
-        Monthly = 4,
-        Quarterly = 5,
+        Daily = 2,
+        Weekly = 3,
+        BiMonthly = 4,
+        Monthly = 5,
+        Quarterly = 6,
     }
 }
