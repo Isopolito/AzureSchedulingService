@@ -59,7 +59,7 @@ namespace Scheduling.Application.Scheduling
                 return;
             }
 
-            var triggerResult = scheduledJobBuilder.BuildTrigger(scheduleJobMessage.JobUid, scheduleJobMessage.SubscriptionName, scheduleJobMessage.Schedule);
+            var triggerResult = scheduledJobBuilder.BuildTriggers(scheduleJobMessage.JobUid, scheduleJobMessage.SubscriptionName, scheduleJobMessage.Schedule);
             if (triggerResult.IsFailure)
             {
                 logger.LogError($"{triggerResult.Error}. Message: {scheduleJobMessage}");
@@ -67,7 +67,7 @@ namespace Scheduling.Application.Scheduling
             }
 
             await RemoveJobIfAlreadyExists(scheduleJobMessage.JobUid, scheduleJobMessage.SubscriptionName, ct);
-            await scheduler.ScheduleJob(jobResult.Value, triggerResult.Value, ct);
+            await scheduler.ScheduleJob(jobResult.Value, triggerResult.Value, false, ct);
         }
 
         private async Task RemoveJobIfAlreadyExists(string jobUid, string subscriptionName, CancellationToken ct)

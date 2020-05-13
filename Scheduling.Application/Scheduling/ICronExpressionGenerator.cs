@@ -1,12 +1,13 @@
-﻿using Scheduling.SharedPackage.Scheduling;
+﻿using System.Collections.Generic;
+using Scheduling.SharedPackage.Scheduling;
 
 namespace Scheduling.Application.Scheduling
 {
+    // To build cron expressions
+    // https://www.freeformatter.com/cron-expression-generator-quartz.html
     public interface ICronExpressionGenerator
     {
-        string Create(JobSchedule schedule);
+        // A collection of strings is returned here because certain requirements (namely Bi-Monthly require two separate cron expressions)
+        IReadOnlyList<string> Create(JobSchedule schedule);
     }
-
-    // For build cron expressions
-    // https://www.freeformatter.com/cron-expression-generator-quartz.html
 }

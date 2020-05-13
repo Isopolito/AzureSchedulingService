@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using CSharpFunctionalExtensions;
 using Quartz;
 using Quartz.Spi;
 using Scheduling.Application.Constants;
+using Scheduling.Application.Extensions;
 using Scheduling.Application.Scheduling;
 using Scheduling.SharedPackage.Enums;
 using Scheduling.SharedPackage.Messages;
@@ -23,41 +26,61 @@ namespace Scheduling.Application.Jobs.Services
             => ValidateJobBuilderInput(scheduleJobMessage)
                 .OnFailureCompensate(error => Result.Failure($"Unable to build job: {error}"))
                 .OnSuccessTry(() => JobBuilder.Create<ScheduledJob>()
-                        .WithIdentity(scheduleJobMessage.JobUid, scheduleJobMessage.SubscriptionName)
-                        .UsingJobData(SchedulingConstants.JobUid, scheduleJobMessage.JobUid)
-                        .UsingJobData(SchedulingConstants.SubscriptionName, scheduleJobMessage.SubscriptionName)
-                        .Build());
+                    .WithIdentity(scheduleJobMessage.JobUid, scheduleJobMessage.SubscriptionName)
+                    .UsingJobData(SchedulingConstants.JobUid, scheduleJobMessage.JobUid)
+                    .UsingJobData(SchedulingConstants.SubscriptionName, scheduleJobMessage.SubscriptionName)
+                    .Build());
 
-        public Result<ITrigger> BuildTrigger(string jobUid, string subscriptionName, JobSchedule schedule)
+        public Result<IReadOnlyList<ITrigger>> BuildTriggers(string jobUid, string subscriptionName, JobSchedule schedule)
             => ValidateTriggerBuilderInput(schedule)
                 .OnFailureCompensate(error => Result.Failure($"Unable to build trigger: {error}"))
-                .OnSuccessTry(() => BuildScheduleTrigger(jobUid, subscriptionName, schedule));
+                .OnSuccessTry(() => BuildScheduleTriggers(jobUid, subscriptionName, schedule));
 
-        private ITrigger BuildScheduleTrigger(string jobUid, string subscriptionName, JobSchedule schedule)
+        private IReadOnlyList<ITrigger> BuildScheduleTriggers(string jobUid, string subscriptionName, JobSchedule schedule) 
+            => BuildBaseTriggers(jobUid, subscriptionName, schedule)
+                .Select(trigger =>
+                {
+                    if (schedule.RepeatEndStrategy == RepeatEndStrategy.AfterEndDate && schedule.EndAt.HasValue)
+                    {
+                        trigger.EndAt(schedule.EndAt);
+                    }
+                    else if (schedule.RepeatEndStrategy == RepeatEndStrategy.AfterOccurrenceNumber && schedule.RepeatCount > 0)
+                    {
+                        // the trigger must first be built in order to calculate end date from repeat count 
+                        var builtTrigger = trigger.Build();
+                        var endDate = TriggerUtils.ComputeEndTimeToAllowParticularNumberOfFirings(builtTrigger as IOperableTrigger, null, schedule.RepeatCount);
+                        trigger.EndAt(endDate);
+                    }
+
+                    return trigger.Build();
+                })
+                .ToList()
+                .AsReadOnly();
+
+        private IReadOnlyList<TriggerBuilder> BuildBaseTriggers(string jobUid, string subscriptionName, JobSchedule schedule)
         {
-            var trigger = BuildBaseTrigger(jobUid, subscriptionName, schedule);
-
-            if (schedule.RepeatEndStrategy == RepeatEndStrategy.AfterEndDate && schedule.EndAt.HasValue)
+            if ((schedule.RepeatInterval == RepeatIntervals.Never || schedule.RepeatInterval == RepeatIntervals.Invalid)
+                && schedule.CronExpressionOverride.HasNoValue())
             {
-                trigger.EndAt(schedule.EndAt);
-            } 
-            else if (schedule.RepeatEndStrategy == RepeatEndStrategy.AfterOccurrenceNumber && schedule.RepeatCount > 0)
-            {
-                // the trigger must first be built in order to calculate end date from repeat count 
-                var builtTrigger = trigger.Build();
-                var endDate = TriggerUtils.ComputeEndTimeToAllowParticularNumberOfFirings(builtTrigger as IOperableTrigger, null, schedule.RepeatCount);
-                trigger = BuildBaseTrigger(jobUid, subscriptionName, schedule);
-                trigger.EndAt(endDate);
+                // Run once
+                return new[]
+                {
+                    TriggerBuilder.Create()
+                        .WithIdentity(jobUid, subscriptionName)
+                        .WithSimpleSchedule()
+                        .StartAt(schedule.StartAt)
+                };
             }
 
-            return trigger.Build();
+            // Certain scheduling requirements may require multiple cron expressions, which means multiple triggers for a job
+            var cronExpressions = cronExpressionGenerator.Create(schedule);
+            return cronExpressions.Select((cronExpression, idx) => TriggerBuilder.Create()
+                    .WithIdentity($"{jobUid}-{idx}", subscriptionName)
+                    .WithCronSchedule(cronExpression)
+                    .StartAt(schedule.StartAt))
+                .ToList()
+                .AsReadOnly();
         }
-
-        private TriggerBuilder BuildBaseTrigger(string jobUid, string subscriptionName, JobSchedule schedule) 
-            => TriggerBuilder.Create()
-                .WithIdentity(jobUid, subscriptionName)
-                .WithCronSchedule(cronExpressionGenerator.Create(schedule))
-                .StartAt(schedule.StartAt);
 
         private static Result ValidateJobBuilderInput(ScheduleJobMessage scheduleJobMessage)
         {
@@ -78,7 +101,7 @@ namespace Scheduling.Application.Jobs.Services
         {
             if (schedule == null) return Result.Failure("Schedule property is required in order to schedule job");
 
-            if (schedule.EndAt.HasValue && schedule.EndAt < DateTime.Now)
+            if (schedule.EndAt.HasValue && schedule.EndAt.Value.ToUniversalTime() < DateTime.UtcNow)
             {
                 return Result.Failure("EndAt cannot be a date in the past");
             }
@@ -88,8 +111,19 @@ namespace Scheduling.Application.Jobs.Services
                 return Result.Failure("Scheduled RepeatCount cannot be a negative number");
             }
 
-            if (schedule.RepeatEndStrategy == RepeatEndStrategy.Never && schedule.RepeatInterval == RepeatIntervals.Never
-                && schedule.RepeatCount < 1)
+            if (schedule.RepeatEndStrategy == RepeatEndStrategy.AfterOccurrenceNumber
+                && schedule.RepeatCount < 1 && schedule.StartAt.ToUniversalTime() < DateTime.UtcNow)
+            {
+                return Result.Failure("StartAt cannot be in the past for non-repeating jobs");
+            }
+
+            if (schedule.RepeatEndStrategy == RepeatEndStrategy.AfterEndDate && schedule.EndAt < schedule.StartAt)
+            {
+                return Result.Failure("EndAt cannot be before StartDate");
+            }
+
+            if ((schedule.RepeatInterval == RepeatIntervals.Never || schedule.RepeatInterval == RepeatIntervals.Invalid)
+                && schedule.StartAt.ToUniversalTime() < DateTime.UtcNow && schedule.CronExpressionOverride.HasNoValue())
             {
                 return Result.Failure("StartAt cannot be in the past for non-repeating jobs");
             }
