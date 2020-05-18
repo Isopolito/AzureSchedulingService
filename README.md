@@ -1,8 +1,9 @@
 # AzureSchedulingService
 A domain agnostic azure cloud scheduling service using quartz.net
 
+NOTE: I only had a 1 month trial with azure to get this up and running. A whole round of recent changes to how cron expressions are generated haven't been tested
 
-NOTE: You will need to add appsettings.json to Application project with the following data:
+Also NOTE: You will need to add appsettings.json to Application project with the following data:
 ```javascript
 {
     "TopicName": "whatever",
