@@ -26,6 +26,7 @@ namespace Scheduling.Application
                     services.AddSingleton<IServiceBus, ServiceBus.ServiceBus>();
                     services.AddSingleton<ISchedulingActions, SchedulingActions>();
                     services.AddSingleton<IScheduledJobBuilder, ScheduledJobBuilder>();
+                    services.AddSingleton<ICronExpressionGenerator, CronExpressionGenerator>();
 
                     services.AddTransient<ScheduledJob>();
                 })

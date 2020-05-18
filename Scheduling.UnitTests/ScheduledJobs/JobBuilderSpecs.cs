@@ -1,19 +1,21 @@
 using FluentAssertions;
 using NUnit.Framework;
 using Scheduling.Application.Jobs.Services;
+using Scheduling.Application.Scheduling;
 using Scheduling.SharedPackage.Messages;
 using Scheduling.SharedPackage.Scheduling;
 
 namespace Scheduling.UnitTests.ScheduledJobs
 {
-    public class JobBuilderInputSpecs
+    public class JobBuilderSpecs
     {
         private IScheduledJobBuilder scheduledJobBuilder;
 
         [SetUp]
         public void Setup()
         {
-            scheduledJobBuilder = new ScheduledJobBuilder();
+            var cronExpressionGenerator = new CronExpressionGenerator();
+            scheduledJobBuilder = new ScheduledJobBuilder(cronExpressionGenerator);
         }
 
         [Test]
