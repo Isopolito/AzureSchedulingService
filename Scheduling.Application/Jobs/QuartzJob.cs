@@ -5,16 +5,16 @@ using Newtonsoft.Json;
 using Quartz;
 using Scheduling.Application.Constants;
 using Scheduling.Application.ServiceBus;
-using Scheduling.SharedPackage.Messages;
+using Scheduling.SharedPackage.Models;
 
 namespace Scheduling.Application.Jobs
 {
-    public class ScheduledJob : IJob
+    public class QuartzJob : IJob
     {
         private readonly IServiceBus serviceBus;
-        private readonly ILogger<ScheduledJob> logger;
+        private readonly ILogger<QuartzJob> logger;
 
-        public ScheduledJob(IServiceBus serviceBus, ILogger<ScheduledJob> logger)
+        public QuartzJob(IServiceBus serviceBus, ILogger<QuartzJob> logger)
         {
             this.serviceBus = serviceBus;
             this.logger = logger;
@@ -22,24 +22,23 @@ namespace Scheduling.Application.Jobs
 
         public async Task Execute(IJobExecutionContext context)
         {
-            string subscriptionName = string.Empty, jobUid = string.Empty;
+            string subscriptionName = string.Empty, jobIdentifier = string.Empty;
             try
             {
                 var dataMap = context.JobDetail.JobDataMap;
                 subscriptionName = dataMap.GetString(SchedulingConstants.SubscriptionName);
-                jobUid = dataMap.GetString(SchedulingConstants.JobUid);
+                jobIdentifier = dataMap.GetString(SchedulingConstants.JobIdentifier);
 
-                var executeJobMessage = new ExecuteJobMessage
-                {
-                    JobUid = jobUid,
-                };
+                // TODO: Look up job in scheduling.Job table based on subsciptionName, jobIdentifier
+
+                var job = new Job(subscriptionName, jobIdentifier, "fixme");
 
                 await serviceBus.EnsureSubscriptionIsSetup(subscriptionName);
-                await serviceBus.PublishEventToTopic(subscriptionName, JsonConvert.SerializeObject(executeJobMessage));
+                await serviceBus.PublishEventToTopic(subscriptionName, JsonConvert.SerializeObject(job));
             }
             catch (Exception e)
             {
-                logger.LogError(e, $"Unable to execute job--jobUid: {jobUid}, subscriptionName: {subscriptionName}");
+                logger.LogError(e, $"Unable to execute job--jobIdentifier: {jobIdentifier}, subscriptionName: {subscriptionName}");
             }
         }
     }

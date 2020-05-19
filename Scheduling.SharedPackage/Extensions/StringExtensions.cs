@@ -1,4 +1,4 @@
-﻿namespace Scheduling.Application.Extensions
+﻿namespace Scheduling.SharedPackage.Extensions
 {
     public static class StringExtensions
     {

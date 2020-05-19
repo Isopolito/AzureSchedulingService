@@ -7,8 +7,7 @@ using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Scheduling.SharedPackage.Enums;
-using Scheduling.SharedPackage.Messages;
-using Scheduling.SharedPackage.Scheduling;
+using Scheduling.SharedPackage.Models;
 
 namespace Scheduling.LocalTester
 {
@@ -43,24 +42,20 @@ namespace Scheduling.LocalTester
             {
                 Console.ReadKey();
 
-                var jobUid = $"This is a uid - {DateTime.Now}";
+                var jobIdentifier = $"This is a uid - {DateTime.Now}";
                 Thread.Sleep(1);
-                //await SendDeleteJobMessagesToQueueAsync(deleteJobQueueClient, jobUid);
-                await SendAddJobMessagesToQueueAsync(addJobQueueClient, jobUid);
+                //await SendDeleteJobMessagesToQueueAsync(deleteJobQueueClient, jobIdentifier);
+                await SendAddJobMessagesToQueueAsync(addJobQueueClient, jobIdentifier);
             }
 
             //await queueClient.CloseAsync();
         }
 
-        private static async Task SendDeleteJobMessagesToQueueAsync(QueueClient queueClient, string jobUid)
+        private static async Task SendDeleteJobMessagesToQueueAsync(QueueClient queueClient, string jobIdentifier)
         {
             try
             {
-                var deleteJobMessage = new DeleteJobMessage
-                {
-                    SubscriptionName = "scheduling-testsubscription-1",
-                    JobUid = jobUid,
-                };
+                var deleteJobMessage = new JobLocator(jobIdentifier, "scheduling-testsubscription-1");
                 var messageBody = JsonConvert.SerializeObject(deleteJobMessage);
                 var message = new Message(Encoding.UTF8.GetBytes(messageBody));
 
@@ -72,25 +67,14 @@ namespace Scheduling.LocalTester
             }
         }
 
-        private static async Task SendAddJobMessagesToQueueAsync(QueueClient queueClient, string jobUid)
+        private static async Task SendAddJobMessagesToQueueAsync(QueueClient queueClient, string jobIdentifier)
         {
             try
             {
-                var jobSchedule = new JobSchedule
-                {
-                    RepeatCount = 99,
-                    StartAt = DateTime.Now,
-                    EndAt = DateTime.Now.AddMinutes(15),
-                    RepeatInterval = RepeatIntervals.Never,
-                };
+                var job = new Job("scheduling-testsubscription-1", jobIdentifier, "test");
+                job.Update(null, DateTime.Now, DateTime.Now.AddMinutes(15), RepeatEndStrategy.AfterOccurrenceNumber, RepeatInterval.Daily, 99, "test");
 
-                var scheduleJobMessage = new ScheduleJobMessage
-                {
-                    SubscriptionName = "scheduling-testsubscription-1",
-                    JobUid = jobUid,
-                    Schedule = jobSchedule,
-                };
-                var messageBody = JsonConvert.SerializeObject(scheduleJobMessage);
+                var messageBody = JsonConvert.SerializeObject(job);
                 var message = new Message(Encoding.UTF8.GetBytes(messageBody));
 
                 await queueClient.SendAsync(message);

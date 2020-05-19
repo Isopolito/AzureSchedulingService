@@ -28,7 +28,7 @@ namespace Scheduling.Application
                     services.AddSingleton<IScheduledJobBuilder, ScheduledJobBuilder>();
                     services.AddSingleton<ICronExpressionGenerator, CronExpressionGenerator>();
 
-                    services.AddTransient<ScheduledJob>();
+                    services.AddTransient<QuartzJob>();
                 })
                 .ConfigureWebJobs(b =>
                 {

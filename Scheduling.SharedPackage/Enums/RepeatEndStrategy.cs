@@ -2,9 +2,9 @@
 {
     public enum RepeatEndStrategy
     {
-        Invalid = 0,
+        NotUsed = 0,
         Never = 1,
-        AfterEndDate = 2,
+        OnEndDate = 2,
         AfterOccurrenceNumber = 3
     }
 }

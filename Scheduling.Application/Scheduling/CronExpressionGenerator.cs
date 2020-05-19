@@ -1,48 +1,48 @@
 ﻿using System.Collections.Generic;
-using Scheduling.SharedPackage.Scheduling;
 using CronEspresso.NETCore;
 using CronEspresso.NETCore.Enums;
-using Scheduling.Application.Extensions;
 using Scheduling.SharedPackage.Enums;
+using Scheduling.SharedPackage.Extensions;
+using Scheduling.SharedPackage.Models;
 
 namespace Scheduling.Application.Scheduling
 {
     public class CronExpressionGenerator : ICronExpressionGenerator
     {
-        public IReadOnlyList<string> Create(JobSchedule schedule)
+        public IReadOnlyList<string> Create(Job job)
         {
-            if (schedule.CronExpressionOverride.HasValue())
+            if (job.CronExpressionOverride.HasValue())
             {
-                return new []{schedule.CronExpressionOverride};
+                return new []{job.CronExpressionOverride};
             }
 
-            if (schedule.RepeatInterval == RepeatIntervals.Daily)
+            if (job.RepeatInterval == RepeatInterval.Daily)
             {
-                return new []{CronGenerator.GenerateDailyCronExpression(schedule.StartAt.TimeOfDay)};
+                return new []{CronGenerator.GenerateDailyCronExpression(job.StartAt.TimeOfDay)};
             }
 
-            if (schedule.RepeatInterval == RepeatIntervals.Weekly)
+            if (job.RepeatInterval == RepeatInterval.Weekly)
             {
-                return new []{CronGenerator.GenerateSetDayCronExpression(schedule.StartAt.TimeOfDay, schedule.StartAt.DayOfWeek)};
+                return new []{CronGenerator.GenerateSetDayCronExpression(job.StartAt.TimeOfDay, job.StartAt.DayOfWeek)};
             }
 
-            if (schedule.RepeatInterval == RepeatIntervals.BiMonthly)
+            if (job.RepeatInterval == RepeatInterval.BiMonthly)
             {
                 return new []
                 {
-                    CronGenerator.GenerateSetDayMonthlyCronExpression(schedule.StartAt.TimeOfDay, TimeOfMonthToRun.First, schedule.StartAt.DayOfWeek, 1),
-                    CronGenerator.GenerateSetDayMonthlyCronExpression(schedule.StartAt.TimeOfDay, TimeOfMonthToRun.Third, schedule.StartAt.DayOfWeek, 1)
+                    CronGenerator.GenerateSetDayMonthlyCronExpression(job.StartAt.TimeOfDay, TimeOfMonthToRun.First, job.StartAt.DayOfWeek, 1),
+                    CronGenerator.GenerateSetDayMonthlyCronExpression(job.StartAt.TimeOfDay, TimeOfMonthToRun.Third, job.StartAt.DayOfWeek, 1)
                 };
             }
 
-            if (schedule.RepeatInterval == RepeatIntervals.Monthly)
+            if (job.RepeatInterval == RepeatInterval.Monthly)
             {
-                return new []{CronGenerator.GenerateSetDayMonthlyCronExpression(schedule.StartAt.TimeOfDay, TimeOfMonthToRun.First, schedule.StartAt.DayOfWeek, 1)};
+                return new []{CronGenerator.GenerateSetDayMonthlyCronExpression(job.StartAt.TimeOfDay, TimeOfMonthToRun.First, job.StartAt.DayOfWeek, 1)};
             }
 
-            if (schedule.RepeatInterval == RepeatIntervals.Quarterly)
+            if (job.RepeatInterval == RepeatInterval.Quarterly)
             {
-                return new []{CronGenerator.GenerateSetDayMonthlyCronExpression(schedule.StartAt.TimeOfDay, TimeOfMonthToRun.First, schedule.StartAt.DayOfWeek, 3)};
+                return new []{CronGenerator.GenerateSetDayMonthlyCronExpression(job.StartAt.TimeOfDay, TimeOfMonthToRun.First, job.StartAt.DayOfWeek, 3)};
             }
 
             return null;

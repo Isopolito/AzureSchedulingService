@@ -1,14 +1,13 @@
 ﻿using System.Collections.Generic;
 using CSharpFunctionalExtensions;
 using Quartz;
-using Scheduling.SharedPackage.Messages;
-using Scheduling.SharedPackage.Scheduling;
+using Scheduling.SharedPackage.Models;
 
 namespace Scheduling.Application.Jobs.Services
 {
     public interface IScheduledJobBuilder
     {
-        Result<IReadOnlyList<ITrigger>> BuildTriggers(string jobUid, string subscriptionName, JobSchedule schedule);
-        Result<IJobDetail> BuildJob(ScheduleJobMessage scheduleJobMessage);
+        Result<IReadOnlyList<ITrigger>> BuildTriggers(Job job);
+        Result<IJobDetail> BuildJob(Job job);
     }
 }

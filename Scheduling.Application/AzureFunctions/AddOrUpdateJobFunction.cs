@@ -7,27 +7,27 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Scheduling.Application.Scheduling;
-using Scheduling.SharedPackage.Messages;
+using Scheduling.SharedPackage.Models;
 
-namespace Scheduling.Application.Functions
+namespace Scheduling.Application.AzureFunctions
 {
-    public class ScheduleAddJobFunction
+    public class AddOrUpdateJobFunction
     {
         private readonly ISchedulingActions schedulingActions;
 
-        public ScheduleAddJobFunction(ISchedulingActions schedulingActions)
+        public AddOrUpdateJobFunction(ISchedulingActions schedulingActions)
         {
             this.schedulingActions = schedulingActions;
         }
 
         // TODO: Handle dead letters
-        public async Task AddJob([ServiceBusTrigger("scheduling-add")] Message message, ILogger logger, CancellationToken ct)
+        public async Task AddOrUpdateJob([ServiceBusTrigger("scheduling-add")] Message message, ILogger logger, CancellationToken ct)
         {
             string body = null;
             try
             {
                 body = Encoding.UTF8.GetString(message.Body);
-                var job = JsonConvert.DeserializeObject<ScheduleJobMessage>(body);
+                var job = JsonConvert.DeserializeObject<Job>(body);
                 await schedulingActions.AddOrUpdateJob(job, ct);
             }
             catch (Exception e)

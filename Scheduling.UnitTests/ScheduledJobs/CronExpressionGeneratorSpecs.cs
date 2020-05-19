@@ -3,13 +3,15 @@ using FluentAssertions;
 using NUnit.Framework;
 using Scheduling.Application.Scheduling;
 using Scheduling.SharedPackage.Enums;
-using Scheduling.SharedPackage.Scheduling;
+using Scheduling.SharedPackage.Models;
 
 namespace Scheduling.UnitTests.ScheduledJobs
 {
     public class CronExpressionGeneratorSpecs
     {
         private CronExpressionGenerator cronExpressionGenerator;
+
+        private static Job DefaultJob => new Job("Subscription", "JobIdentifier", "Tester");
 
         [SetUp]
         public void Setup()
@@ -20,11 +22,11 @@ namespace Scheduling.UnitTests.ScheduledJobs
         [Test]
         public void Cron_Expression_Override_Is_Used_When_Provided()
         {
-            var cronExpressions = cronExpressionGenerator.Create(new JobSchedule
-            {
-                StartAt = new DateTime(2022, 5, 5, 17, 0, 0),
-                CronExpressionOverride = "0 0 17 ? * * *",
-            });
+            var job = DefaultJob;
+            const string cronExpressionOverride = "0 0 17 ? * * *";
+            job.Update(null, new DateTime(2022, 5, 5, 17, 0, 0), null, RepeatEndStrategy.NotUsed, RepeatInterval.NotUsed, 0, "test", cronExpressionOverride);
+
+            var cronExpressions = cronExpressionGenerator.Create(job);
 
             cronExpressions.Count.Should().Be(1);
             cronExpressions[0].Should().Be("0 0 17 ? * * *");
@@ -33,11 +35,10 @@ namespace Scheduling.UnitTests.ScheduledJobs
         [Test]
         public void Start_At_5_5_2022_With_Repeat_Daily()
         {
-            var cronExpressions = cronExpressionGenerator.Create(new JobSchedule
-            {
-                StartAt = new DateTime(2022, 5, 5, 17, 0, 0),
-                RepeatInterval = RepeatIntervals.Daily,
-            });
+            var job = DefaultJob;
+            job.Update(null, new DateTime(2022, 5, 5, 17, 0, 0), null, RepeatEndStrategy.Never, RepeatInterval.Daily, 0, "test");
+
+            var cronExpressions = cronExpressionGenerator.Create(job);
 
             cronExpressions.Count.Should().Be(1);
             cronExpressions[0].Should().Be("0 0 17 ? * * *");
@@ -46,11 +47,10 @@ namespace Scheduling.UnitTests.ScheduledJobs
         [Test]
         public void Start_At_5_5_2022_With_Repeat_Weekly()
         {
-            var cronExpressions = cronExpressionGenerator.Create(new JobSchedule
-            {
-                StartAt = new DateTime(2022, 5, 5, 17, 0, 0),
-                RepeatInterval = RepeatIntervals.Weekly,
-            });
+            var job = DefaultJob;
+            job.Update(null, new DateTime(2022, 5, 5, 17, 0, 0), null, RepeatEndStrategy.Never, RepeatInterval.Weekly, 0, "test");
+
+            var cronExpressions = cronExpressionGenerator.Create(job);
 
             cronExpressions.Count.Should().Be(1);
             cronExpressions[0].Should().Be("0 0 17 ? * THU *");
@@ -59,11 +59,10 @@ namespace Scheduling.UnitTests.ScheduledJobs
         [Test]
         public void Start_At_5_5_2022_With_Repeat_BiMonthly()
         {
-            var cronExpressions = cronExpressionGenerator.Create(new JobSchedule
-            {
-                StartAt = new DateTime(2022, 5, 5, 17, 0, 0),
-                RepeatInterval = RepeatIntervals.BiMonthly,
-            });
+            var job = DefaultJob;
+            job.Update(null, new DateTime(2022, 5, 5, 17, 0, 0), null, RepeatEndStrategy.Never, RepeatInterval.BiMonthly, 0, "test");
+
+            var cronExpressions = cronExpressionGenerator.Create(job);
 
             cronExpressions.Count.Should().Be(2);
             cronExpressions[0].Should().Be("0 0 17 ? 1/1 THU#1 *");

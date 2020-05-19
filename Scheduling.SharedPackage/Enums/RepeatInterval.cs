@@ -1,8 +1,8 @@
 ﻿namespace Scheduling.SharedPackage.Enums
 {
-    public enum RepeatIntervals
+    public enum RepeatInterval
     {
-        Invalid = 0,
+        NotUsed = 0,
         Never = 1,
         Daily = 2,
         Weekly = 3,

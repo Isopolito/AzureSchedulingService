@@ -1,9 +1,9 @@
+using System;
 using FluentAssertions;
 using NUnit.Framework;
 using Scheduling.Application.Jobs.Services;
-using Scheduling.Application.Scheduling;
-using Scheduling.SharedPackage.Messages;
-using Scheduling.SharedPackage.Scheduling;
+using Scheduling.SharedPackage.Enums;
+using Scheduling.SharedPackage.Models;
 
 namespace Scheduling.UnitTests.ScheduledJobs
 {
@@ -11,81 +11,46 @@ namespace Scheduling.UnitTests.ScheduledJobs
     {
         private IScheduledJobBuilder scheduledJobBuilder;
 
-        [SetUp]
-        public void Setup()
+        [Test]
+        public void Throw_Exception_If_SubscriptionName_Is_Missing()
         {
-            var cronExpressionGenerator = new CronExpressionGenerator();
-            scheduledJobBuilder = new ScheduledJobBuilder(cronExpressionGenerator);
+            Action act = () => new Job(null, "unique id 1234", "test");
+
+            act.Should()
+                .Throw<ArgumentException>()
+                .WithMessage($"The {nameof(Job.SubscriptionName)} is required*");
         }
 
         [Test]
-        public void BuildJob_Throw_Exception_If_Schedule_Is_Missing()
+        public void Throw_Exception_If_JobIdentifier_Is_Missing()
         {
-            var message = new ScheduleJobMessage
-            {
-                JobUid = "unique id 1234",
-                SubscriptionName = "foo",
-                Schedule = null,
-            };
+            Action act = () => new Job("sub name", null, "test");
 
-            var result = scheduledJobBuilder.BuildJob(message);
-            result.Error.Should().Contain("Schedule property is required ");
+            act.Should()
+                .Throw<ArgumentException>()
+                .WithMessage($"A {nameof(Job.JobIdentifier)} is required*");
         }
 
         [Test]
-        public void Throw_Exception_If_SubscriptionName_Is_Null()
+        public void Throw_Exception_If_CreatedBy_Is_Missing()
         {
-            var message = new ScheduleJobMessage
-            {
-                SubscriptionName = null,
-                JobUid = "unique id 1234",
-                Schedule = new JobSchedule(),
-            };
+            Action act = () => new Job("sub name", "ident", null);
 
-            var result = scheduledJobBuilder.BuildJob(message);
-            result.Error.Should().Contain("JobUid and SubscriptionName are required");
+            act.Should()
+                .Throw<ArgumentException>()
+                .WithMessage("The id of the user *");
         }
 
         [Test]
-        public void Throw_Exception_If_SubscriptionName_Is_Empty()
+        public void Throw_Exception_If_Repeat_End_Strategy_With_No_Interval()
         {
-            var message = new ScheduleJobMessage
-            {
-                SubscriptionName = string.Empty,
-                JobUid = "unique id 1234",
-                Schedule = new JobSchedule(),
-            };
+            var job = new Job("sub name", "ident", "test");
 
-            var result = scheduledJobBuilder.BuildJob(message);
-            result.Error.Should().Contain("JobUid and SubscriptionName are required");
-        }
+            Action act = () => job.Update(null, DateTime.Now.AddMinutes(30), DateTime.Now.AddHours(30), RepeatEndStrategy.OnEndDate, RepeatInterval.Never, 0, "test");
 
-        [Test]
-        public void Throw_Exception_If_JobUid_Is_Null()
-        {
-            var message = new ScheduleJobMessage
-            {
-                SubscriptionName = "foo",
-                JobUid = null,
-                Schedule = new JobSchedule(),
-            };
-
-            var result = scheduledJobBuilder.BuildJob(message);
-            result.Error.Should().Contain("JobUid and SubscriptionName are required");
-        }
-
-        [Test]
-        public void Throw_Exception_If_JobUid_Is_Empty()
-        {
-            var message = new ScheduleJobMessage
-            {
-                SubscriptionName = "foo",
-                JobUid = string.Empty,
-                Schedule = new JobSchedule(),
-            };
-
-            var result = scheduledJobBuilder.BuildJob(message);
-            result.Error.Should().Contain("JobUid and SubscriptionName are required");
+            act.Should()
+                .Throw<ArgumentException>()
+                .WithMessage($"a {nameof(Job.RepeatEndStrategy)} with no {nameof(Job.RepeatInterval)} doesn't make sense");
         }
     }
 }

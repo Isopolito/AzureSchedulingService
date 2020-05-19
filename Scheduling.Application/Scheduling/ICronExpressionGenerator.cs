@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using Scheduling.SharedPackage.Scheduling;
+using Scheduling.SharedPackage.Models;
 
 namespace Scheduling.Application.Scheduling
 {
@@ -8,6 +8,6 @@ namespace Scheduling.Application.Scheduling
     public interface ICronExpressionGenerator
     {
         // A collection of strings is returned here because certain requirements (namely Bi-Monthly require two separate cron expressions)
-        IReadOnlyList<string> Create(JobSchedule schedule);
+        IReadOnlyList<string> Create(Job schedule);
     }
 }

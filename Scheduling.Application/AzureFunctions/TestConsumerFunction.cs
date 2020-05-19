@@ -3,9 +3,9 @@ using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using Scheduling.SharedPackage.Messages;
+using Scheduling.SharedPackage.Models;
 
-namespace Scheduling.Application.Functions
+namespace Scheduling.Application.AzureFunctions
 {
     public static class TestConsumerFunction
     {
@@ -13,7 +13,7 @@ namespace Scheduling.Application.Functions
         public static void TestConsumer([ServiceBusTrigger("scheduling-execute", "scheduling-testsubscription-1")] Message message, ILogger logger)
         {
             var body = Encoding.UTF8.GetString(message.Body);
-            var executeJob = JsonConvert.DeserializeObject<ExecuteJobMessage>(body);
+            var executeJob = JsonConvert.DeserializeObject<Job>(body);
             logger.LogInformation($"\n***==> Received execute job, message: ${body}\n");
         }
     }
