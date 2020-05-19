@@ -1,6 +1,6 @@
 ﻿namespace Scheduling.DataAccess.Entities
 {
-    public class RepeatInterval
+    internal class RepeatInterval
     {
         public static RepeatInterval NotUsed = new RepeatInterval(0, "Not Used");
         public static RepeatInterval Never = new RepeatInterval(1, "Never");

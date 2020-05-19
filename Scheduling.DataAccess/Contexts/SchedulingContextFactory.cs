@@ -6,7 +6,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace Scheduling.DataAccess.Contexts
 {
-    public class SchedulingContextFactory : IDesignTimeDbContextFactory<SchedulingContext>
+    internal class SchedulingContextFactory : IDesignTimeDbContextFactory<SchedulingContext>
     {
         private const string AspNetCoreEnvironment = "ASPNETCORE_ENVIRONMENT";
         private const string ConnectionStringName = "AgilityHealthShared";

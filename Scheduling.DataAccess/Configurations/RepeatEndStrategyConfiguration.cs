@@ -4,7 +4,7 @@ using Scheduling.DataAccess.Entities;
 
 namespace Scheduling.DataAccess.Configurations
 {
-    public class RepeatEndStrategyConfiguration : IEntityTypeConfiguration<RepeatEndStrategy>
+    internal class RepeatEndStrategyConfiguration : IEntityTypeConfiguration<RepeatEndStrategy>
     {
         public void Configure(EntityTypeBuilder<RepeatEndStrategy> builder)
         {

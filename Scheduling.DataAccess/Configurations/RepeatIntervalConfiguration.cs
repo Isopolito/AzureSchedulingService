@@ -4,7 +4,7 @@ using Scheduling.DataAccess.Entities;
 
 namespace Scheduling.DataAccess.Configurations
 {
-    public class RepeatIntervalConfiguration : IEntityTypeConfiguration<RepeatInterval>
+    internal class RepeatIntervalConfiguration : IEntityTypeConfiguration<RepeatInterval>
     {
         public void Configure(EntityTypeBuilder<RepeatInterval> builder)
         {

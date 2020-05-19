@@ -2,7 +2,7 @@
 
 namespace Scheduling.DataAccess.Entities
 {
-    public class Job
+    internal class Job
     {
         public int JobId { get; set; }
         public string JobIdentifier { get; set; }

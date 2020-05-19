@@ -4,7 +4,7 @@ using Scheduling.DataAccess.Entities;
 
 namespace Scheduling.DataAccess.Configurations
 {
-    public class JobConfiguration : IEntityTypeConfiguration<Job>
+    internal class JobConfiguration : IEntityTypeConfiguration<Job>
     {
         public void Configure(EntityTypeBuilder<Job> builder)
         {

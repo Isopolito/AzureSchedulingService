@@ -4,7 +4,7 @@ using Scheduling.DataAccess.Entities;
 
 namespace Scheduling.DataAccess.Contexts
 {
-    public class SchedulingContext : DbContext
+    internal class SchedulingContext : DbContext
     {
         public SchedulingContext(DbContextOptions<SchedulingContext> options) : base(options)
         {

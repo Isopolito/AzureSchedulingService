@@ -1,6 +1,6 @@
 ﻿namespace Scheduling.DataAccess.Entities
 {
-    public class RepeatEndStrategy
+    internal class RepeatEndStrategy
     {
         public static RepeatEndStrategy NotUsed = new RepeatEndStrategy(0, "Not Used");
         public static RepeatEndStrategy Never = new RepeatEndStrategy(1, "Never");
