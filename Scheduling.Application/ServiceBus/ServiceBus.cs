@@ -6,7 +6,7 @@ using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.ServiceBus.Management;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Scheduling.Application.Constants;
+using Scheduling.Engine.Constants;
 
 namespace Scheduling.Application.ServiceBus
 {

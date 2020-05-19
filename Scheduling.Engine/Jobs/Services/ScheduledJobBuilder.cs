@@ -4,13 +4,13 @@ using System.Linq;
 using CSharpFunctionalExtensions;
 using Quartz;
 using Quartz.Spi;
-using Scheduling.Application.Constants;
-using Scheduling.Application.Scheduling;
+using Scheduling.Engine.Constants;
+using Scheduling.Engine.Scheduling;
 using Scheduling.SharedPackage.Enums;
 using Scheduling.SharedPackage.Extensions;
 using Scheduling.SharedPackage.Models;
 
-namespace Scheduling.Application.Jobs.Services
+namespace Scheduling.Engine.Jobs.Services
 {
     public class ScheduledJobBuilder : IScheduledJobBuilder
     {

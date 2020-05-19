@@ -6,7 +6,7 @@ using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using Scheduling.Application.Scheduling;
+using Scheduling.Engine.Scheduling;
 using Scheduling.SharedPackage.Models;
 
 namespace Scheduling.Application.AzureFunctions
@@ -21,7 +21,8 @@ namespace Scheduling.Application.AzureFunctions
         }
 
         // TODO: Handle dead letters
-        public async Task AddOrUpdateJob([ServiceBusTrigger("scheduling-add")] Message message, ILogger logger, CancellationToken ct)
+        public async Task AddOrUpdateJob([ServiceBusTrigger("scheduling-addorupdate")]
+                                         Message message, ILogger logger, CancellationToken ct)
         {
             string body = null;
             try

@@ -1,11 +1,11 @@
 using System;
 using FluentAssertions;
 using NUnit.Framework;
-using Scheduling.Application.Scheduling;
+using Scheduling.Engine.Scheduling;
 using Scheduling.SharedPackage.Enums;
 using Scheduling.SharedPackage.Models;
 
-namespace Scheduling.UnitTests.ScheduledJobs
+namespace Scheduling.UnitTests
 {
     public class CronExpressionGeneratorSpecs
     {

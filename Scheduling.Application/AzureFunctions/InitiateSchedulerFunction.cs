@@ -3,7 +3,7 @@ using System.Threading;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Quartz.Spi;
-using Scheduling.Application.Scheduling;
+using Scheduling.Engine.Scheduling;
 
 namespace Scheduling.Application.AzureFunctions
 {

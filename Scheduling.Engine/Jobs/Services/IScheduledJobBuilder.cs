@@ -3,7 +3,7 @@ using CSharpFunctionalExtensions;
 using Quartz;
 using Scheduling.SharedPackage.Models;
 
-namespace Scheduling.Application.Jobs.Services
+namespace Scheduling.Engine.Jobs.Services
 {
     public interface IScheduledJobBuilder
     {

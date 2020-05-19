@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
-using Scheduling.Application.Scheduling;
+using Scheduling.Engine.Scheduling;
 using Scheduling.SharedPackage.Models;
 
 namespace Scheduling.Application.AzureFunctions

@@ -1,13 +1,17 @@
 ﻿using System.Collections.Generic;
+using System.Configuration;
 using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Scheduling.Application.Jobs;
-using Scheduling.Application.Jobs.Services;
-using Scheduling.Application.Scheduling;
 using Scheduling.Application.ServiceBus;
+using Scheduling.DataAccess;
+using Scheduling.DataAccess.Contexts;
+using Scheduling.Engine.Extensions;
+using Scheduling.Engine.Jobs;
 
 namespace Scheduling.Application
 {
@@ -16,29 +20,23 @@ namespace Scheduling.Application
         // TODO: Get health checks in place
         // TODO: Get Application Insights in place
         // TODO: Get Loggly in place
-        static async Task Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var host = new HostBuilder()
                 .ConfigureServices((hostContext, services) =>
                 {
                     services.AddLogging();
-
+                    //services.AddSchedulingDataAccess(hostContext.Configuration.GetConnectionStringOrSetting("AgilityHealthShared"));
+                    services.AddDbContextPool<SchedulingContext>(options => { options.UseSqlServer(hostContext.Configuration.GetConnectionStringOrSetting("AgilityHealthShared")); });
+                    services.AddSchedulingEngine();
                     services.AddSingleton<IServiceBus, ServiceBus.ServiceBus>();
-                    services.AddSingleton<ISchedulingActions, SchedulingActions>();
-                    services.AddSingleton<IScheduledJobBuilder, ScheduledJobBuilder>();
-                    services.AddSingleton<ICronExpressionGenerator, CronExpressionGenerator>();
-
-                    services.AddTransient<QuartzJob>();
                 })
                 .ConfigureWebJobs(b =>
                 {
                     b.AddAzureStorageCoreServices();
                     b.AddServiceBus();
                 })
-                .ConfigureLogging((context, b) =>
-                {
-                    b.AddConsole();
-                })
+                .ConfigureLogging((context, b) => { b.AddConsole(); })
                 .Build();
 
             using (host)
@@ -48,7 +46,8 @@ namespace Scheduling.Application
                 var jobHost = host.Services.GetService(typeof(IJobHost)) as JobHost;
                 var inputs = new Dictionary<string, object>
                 {
-                    { "jobFactory", new JobFactory(host.Services) }
+                    // TODO: See if you can use DI to get JobFactory from IJobFactory
+                    {"jobFactory", new JobFactory(host.Services)}
                 };
                 await jobHost.CallAsync("InitiateScheduler", inputs);
 

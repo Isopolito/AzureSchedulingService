@@ -1,4 +1,5 @@
 ﻿using System;
+using Newtonsoft.Json;
 using Scheduling.SharedPackage.Enums;
 using Scheduling.SharedPackage.Extensions;
 
@@ -9,21 +10,42 @@ namespace Scheduling.SharedPackage.Models
         // NOTE: A JobIdentifier must be unique only within the context of a SubscriptionName
         public string JobIdentifier { get; private set; }
         public string SubscriptionName { get; private set; }
+
+        [JsonProperty]
         public string DomainName { get; private set; }
+
+        [JsonProperty]
         public bool IsActive { get; private set; }
+
+        [JsonProperty]
         public RepeatEndStrategy RepeatEndStrategy { get; private set; }
+
+        [JsonProperty]
         public RepeatInterval RepeatInterval { get; private set; }
+
+        [JsonProperty]
         public DateTime StartAt { get; private set; }
+
+        [JsonProperty]
         public DateTime? EndAt { get; private set; }
+
+        [JsonProperty]
         public int RepeatOccurrenceNumber { get; private set; }
 
         // When used, the schedule will be driven off this cron expression.
         // https://www.freeformatter.com/cron-expression-generator-quartz.html
+        [JsonProperty]
         public string CronExpressionOverride { get; private set; }
 
         public string CreatedBy { get; private set; }
+
+        [JsonProperty]
         public string UpdatedBy { get; private set; }
+
+        [JsonProperty]
         public DateTime CreatedAt { get; private set; }
+
+        [JsonProperty]
         public DateTime UpdatedAt { get; private set; }
 
         public Job(string subscriptionName, string jobIdentifier, string createdBy)

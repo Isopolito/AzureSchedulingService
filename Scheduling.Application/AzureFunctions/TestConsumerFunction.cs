@@ -10,7 +10,7 @@ namespace Scheduling.Application.AzureFunctions
     public static class TestConsumerFunction
     {
         // This is just for testing locally
-        public static void TestConsumer([ServiceBusTrigger("scheduling-execute", "scheduling-testsubscription-1")] Message message, ILogger logger)
+        public static void TestConsumer([ServiceBusTrigger("scheduling-execute", "pulse")] Message message, ILogger logger)
         {
             var body = Encoding.UTF8.GetString(message.Body);
             var executeJob = JsonConvert.DeserializeObject<Job>(body);

@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Quartz.Spi;
 using Scheduling.SharedPackage.Models;
 
-namespace Scheduling.Application.Scheduling
+namespace Scheduling.Engine.Scheduling
 {
     public interface ISchedulingActions
     {

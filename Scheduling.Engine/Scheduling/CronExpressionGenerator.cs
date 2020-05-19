@@ -5,7 +5,7 @@ using Scheduling.SharedPackage.Enums;
 using Scheduling.SharedPackage.Extensions;
 using Scheduling.SharedPackage.Models;
 
-namespace Scheduling.Application.Scheduling
+namespace Scheduling.Engine.Scheduling
 {
     public class CronExpressionGenerator : ICronExpressionGenerator
     {

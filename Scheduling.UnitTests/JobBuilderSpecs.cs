@@ -1,16 +1,13 @@
 using System;
 using FluentAssertions;
 using NUnit.Framework;
-using Scheduling.Application.Jobs.Services;
 using Scheduling.SharedPackage.Enums;
 using Scheduling.SharedPackage.Models;
 
-namespace Scheduling.UnitTests.ScheduledJobs
+namespace Scheduling.UnitTests
 {
     public class JobBuilderSpecs
     {
-        private IScheduledJobBuilder scheduledJobBuilder;
-
         [Test]
         public void Throw_Exception_If_SubscriptionName_Is_Missing()
         {

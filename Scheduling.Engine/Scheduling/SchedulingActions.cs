@@ -9,11 +9,10 @@ using Quartz;
 using Quartz.Impl;
 using Quartz.Logging;
 using Quartz.Spi;
-using Scheduling.Application.Jobs.Services;
-using Scheduling.Application.Logging;
+using Scheduling.Engine.Jobs.Services;
 using Scheduling.SharedPackage.Models;
 
-namespace Scheduling.Application.Scheduling
+namespace Scheduling.Engine.Scheduling
 {
     public class SchedulingActions : ISchedulingActions, IDisposable
     {
@@ -32,14 +31,17 @@ namespace Scheduling.Application.Scheduling
                 .ToDictionary(x => x.Key, x => x.Value);
 
             var quartzSettings = new NameValueCollection();
-            foreach (var (key, value) in quartzSettingsDict) quartzSettings.Add(key, value);
+            foreach (var key in quartzSettingsDict.Keys)
+            {
+                quartzSettings.Add(key, quartzSettingsDict[key]);
+            }
             standardFactory = new StdSchedulerFactory(quartzSettings);
         }
 
         public async Task StartScheduler(IJobFactory jobFactory, CancellationToken ct)
         {
             // TODO: Get Quartz logging integrated into ILogger
-            LogProvider.SetCurrentLogProvider(new QuartzLoggingProvider(logger));
+            //LogProvider.SetCurrentLogProvider(new QuartzLoggingProvider(logger));
             scheduler = await standardFactory.GetScheduler(ct);
             scheduler.JobFactory = jobFactory;
             await scheduler.Start(ct);

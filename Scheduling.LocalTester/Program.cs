@@ -25,11 +25,12 @@ namespace Scheduling.LocalTester
             var addJobQueueName = azureConfig["SchedulingAddJobQueueName"];
             var deleteJobQueueName = azureConfig["SchedulingDeleteJobQueueName"];
             var connectionStringServiceBus = azureConfig["AzureWebJobsServiceBus"];
+            var subscriptionName = azureConfig["SubscriptionName"];
 
-            await StartSendingMessages(connectionStringServiceBus, addJobQueueName, deleteJobQueueName);
+            await StartSendingMessages(connectionStringServiceBus, addJobQueueName, deleteJobQueueName, subscriptionName);
         }
 
-        private static async Task StartSendingMessages(string connectionStringServiceBus, string addJobQueueName, string deleteJobQueueName)
+        private static async Task StartSendingMessages(string connectionStringServiceBus, string addJobQueueName, string deleteJobQueueName, string subscriptionName)
         {
             var addJobQueueClient = new QueueClient(connectionStringServiceBus, addJobQueueName);
             var deleteJobQueueClient = new QueueClient(connectionStringServiceBus, deleteJobQueueName);
@@ -45,17 +46,17 @@ namespace Scheduling.LocalTester
                 var jobIdentifier = $"This is a uid - {DateTime.Now}";
                 Thread.Sleep(1);
                 //await SendDeleteJobMessagesToQueueAsync(deleteJobQueueClient, jobIdentifier);
-                await SendAddJobMessagesToQueueAsync(addJobQueueClient, jobIdentifier);
+                await SendAddJobMessagesToQueueAsync(addJobQueueClient, subscriptionName, jobIdentifier);
             }
 
             //await queueClient.CloseAsync();
         }
 
-        private static async Task SendDeleteJobMessagesToQueueAsync(QueueClient queueClient, string jobIdentifier)
+        private static async Task SendDeleteJobMessagesToQueueAsync(QueueClient queueClient, string subscriptionName, string jobIdentifier)
         {
             try
             {
-                var deleteJobMessage = new JobLocator(jobIdentifier, "scheduling-testsubscription-1");
+                var deleteJobMessage = new JobLocator(subscriptionName, jobIdentifier);
                 var messageBody = JsonConvert.SerializeObject(deleteJobMessage);
                 var message = new Message(Encoding.UTF8.GetBytes(messageBody));
 
@@ -67,11 +68,11 @@ namespace Scheduling.LocalTester
             }
         }
 
-        private static async Task SendAddJobMessagesToQueueAsync(QueueClient queueClient, string jobIdentifier)
+        private static async Task SendAddJobMessagesToQueueAsync(QueueClient queueClient, string subscriptionName, string jobIdentifier)
         {
             try
             {
-                var job = new Job("scheduling-testsubscription-1", jobIdentifier, "test");
+                var job = new Job(subscriptionName, jobIdentifier, "test");
                 job.Update(null, DateTime.Now, DateTime.Now.AddMinutes(15), RepeatEndStrategy.AfterOccurrenceNumber, RepeatInterval.Daily, 99, "test");
 
                 var messageBody = JsonConvert.SerializeObject(job);

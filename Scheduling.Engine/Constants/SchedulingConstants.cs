@@ -1,4 +1,4 @@
-﻿namespace Scheduling.Application.Constants
+﻿namespace Scheduling.Engine.Constants
 {
     public static class SchedulingConstants
     {

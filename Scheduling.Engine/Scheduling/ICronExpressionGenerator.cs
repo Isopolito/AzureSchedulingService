@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Scheduling.SharedPackage.Models;
 
-namespace Scheduling.Application.Scheduling
+namespace Scheduling.Engine.Scheduling
 {
     // To build cron expressions
     // https://www.freeformatter.com/cron-expression-generator-quartz.html
