@@ -16,6 +16,14 @@ namespace Scheduling.DataAccess.Configurations
             builder.Property(e => e.Name)
                 .HasMaxLength(75)
                 .IsRequired();
+
+            builder.HasData(RepeatInterval.NotUsed);
+            builder.HasData(RepeatInterval.Never);
+            builder.HasData(RepeatInterval.Daily);
+            builder.HasData(RepeatInterval.Weekly);
+            builder.HasData(RepeatInterval.Monthly);
+            builder.HasData(RepeatInterval.BiMonthly);
+            builder.HasData(RepeatInterval.Quarterly);
         }
     }
 }

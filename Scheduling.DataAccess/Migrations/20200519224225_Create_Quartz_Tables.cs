@@ -1,10 +1,13 @@
+﻿using Microsoft.EntityFrameworkCore.Migrations;
+
+namespace Scheduling.DataAccess.Migrations
+{
+    public partial class Create_Quartz_Tables : Migration
+    {
+        protected override void Up(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.Sql(@"
 -- this script is for SQL Server and Azure SQL
-
-create schema scheduling;
-go
-
-USE Scheduling;
-GO
 
 IF OBJECT_ID(N'[scheduling].[FK_quartz_TRIGGERS_quartz_JOB_DETAILS]', N'F') IS NOT NULL
 ALTER TABLE [scheduling].[quartz_TRIGGERS] DROP CONSTRAINT [FK_quartz_TRIGGERS_quartz_JOB_DETAILS];
@@ -369,3 +372,11 @@ CREATE INDEX [IDX_quartz_FT_JG] ON [scheduling].[quartz_FIRED_TRIGGERS](SCHED_NA
 CREATE INDEX [IDX_quartz_FT_T_G] ON [scheduling].[quartz_FIRED_TRIGGERS](SCHED_NAME, TRIGGER_NAME, TRIGGER_GROUP);
 CREATE INDEX [IDX_quartz_FT_TG] ON [scheduling].[quartz_FIRED_TRIGGERS](SCHED_NAME, TRIGGER_GROUP);
 GO
+            ");
+        }
+
+        protected override void Down(MigrationBuilder migrationBuilder)
+        {
+        }
+    }
+}

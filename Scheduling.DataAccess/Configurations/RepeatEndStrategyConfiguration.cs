@@ -16,6 +16,11 @@ namespace Scheduling.DataAccess.Configurations
             builder.Property(e => e.Name)
                 .HasMaxLength(75)
                 .IsRequired();
+
+            builder.HasData(RepeatEndStrategy.NotUsed);
+            builder.HasData(RepeatEndStrategy.Never);
+            builder.HasData(RepeatEndStrategy.AfterOccurrenceNumber);
+            builder.HasData(RepeatEndStrategy.OnEndDate);
         }
     }
 }

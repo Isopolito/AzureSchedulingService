@@ -11,6 +11,8 @@ namespace Scheduling.DataAccess.Contexts
         }
 
         public DbSet<Job> Jobs { get; set; }
+        public DbSet<RepeatEndStrategy> RepeatEndStrategies { get; set; }
+        public DbSet<RepeatInterval> RepeatIntervals { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

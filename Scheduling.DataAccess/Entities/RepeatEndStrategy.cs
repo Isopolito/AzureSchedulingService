@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Scheduling.DataAccess.Entities
+﻿namespace Scheduling.DataAccess.Entities
 {
     public class RepeatEndStrategy
     {

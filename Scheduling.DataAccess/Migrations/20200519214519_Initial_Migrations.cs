@@ -1,5 +1,4 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore.Migrations;
+﻿using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Scheduling.DataAccess.Migrations
 {
@@ -7,25 +6,38 @@ namespace Scheduling.DataAccess.Migrations
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            CreateSchemaIfNotExists(migrationBuilder);
             CreateRepeatEndStrategyTableIfNotExists(migrationBuilder);
             CreateRepeatIntervalTableIfNotExists(migrationBuilder);
             CreateJobTableIfNotExists(migrationBuilder);
         }
 
+        private static void CreateSchemaIfNotExists(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.Sql(@"
+                IF NOT EXISTS (SELECT schema_name 
+                    FROM information_schema.schemata 
+                    WHERE schema_name = 'scheduling' )
+                BEGIN
+                    EXEC sp_executesql N'CREATE SCHEMA scheduling;';
+                END
+            ");
+        }
+
         private static void CreateRepeatIntervalTableIfNotExists(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.Sql(@"
+                SET ANSI_NULLS ON
+                GO
+
+                SET QUOTED_IDENTIFIER ON
+                GO
+
                 IF (NOT EXISTS (SELECT * 
                                  FROM INFORMATION_SCHEMA.TABLES 
                                  WHERE TABLE_SCHEMA = 'scheduling' 
                                  AND  TABLE_NAME = 'RepeatInterval'))
                 BEGIN
-                    SET ANSI_NULLS ON
-                    GO
-
-                    SET QUOTED_IDENTIFIER ON
-                    GO
-
                     CREATE TABLE [scheduling].[RepeatInterval](
                         [Id] [int] NOT NULL,
                         [Name] [nvarchar](75) NOT NULL,
@@ -34,7 +46,6 @@ namespace Scheduling.DataAccess.Migrations
                         [Id] ASC
                     )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
                     ) ON [PRIMARY]
-                    GO
                 END
                 ");
         }
@@ -42,18 +53,18 @@ namespace Scheduling.DataAccess.Migrations
         private static void CreateRepeatEndStrategyTableIfNotExists(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.Sql(@"
+                SET ANSI_NULLS ON
+                GO
+
+                SET QUOTED_IDENTIFIER ON
+                GO
+
                 IF (NOT EXISTS (SELECT * 
                                  FROM INFORMATION_SCHEMA.TABLES 
                                  WHERE TABLE_SCHEMA = 'scheduling' 
                                  AND  TABLE_NAME = 'RepeatEndStrategy'))
                 BEGIN
-                    SET ANSI_NULLS ON
-                    GO
-
-                    SET QUOTED_IDENTIFIER ON
-                    GO
-
-                    CREATE TABLE [scheduling].[RepeatEndStrategy](
+                   CREATE TABLE [scheduling].[RepeatEndStrategy](
                         [Id] [int] NOT NULL,
                         [Name] [nvarchar](75) NOT NULL,
                      CONSTRAINT [PK_scheduling.RepeatEndStrategy] PRIMARY KEY CLUSTERED 
@@ -61,7 +72,6 @@ namespace Scheduling.DataAccess.Migrations
                         [Id] ASC
                     )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
                     ) ON [PRIMARY]
-                    GO
                 END
                 ");
         }
@@ -69,17 +79,17 @@ namespace Scheduling.DataAccess.Migrations
         private static void CreateJobTableIfNotExists(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.Sql(@"
+                SET ANSI_NULLS ON
+                GO
+
+                SET QUOTED_IDENTIFIER ON
+                GO
+
                 IF (NOT EXISTS (SELECT * 
                                  FROM INFORMATION_SCHEMA.TABLES 
                                  WHERE TABLE_SCHEMA = 'scheduling' 
                                  AND  TABLE_NAME = 'Job'))
                 BEGIN
-                    SET ANSI_NULLS ON
-                    GO
-
-                    SET QUOTED_IDENTIFIER ON
-                    GO
-
                     CREATE TABLE [scheduling].[Job](
                         [JobId] [int] IDENTITY(1,1) NOT NULL,
                         [JobIdentifier] [varchar](75) NOT NULL,
@@ -101,24 +111,18 @@ namespace Scheduling.DataAccess.Migrations
                         [JobId] ASC
                     )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
                     ) ON [PRIMARY]
-                    GO
 
                     ALTER TABLE [scheduling].[Job] ADD  CONSTRAINT [DF_Job_IsActive]  DEFAULT ((0)) FOR [IsActive]
-                    GO
 
                     ALTER TABLE [scheduling].[Job]  WITH CHECK ADD  CONSTRAINT [FK_scheduling.Job_scheduling.RepeatEndStrategy_RepeatEndStrategyId] FOREIGN KEY([RepeatEndStrategyId])
                     REFERENCES [scheduling].[RepeatEndStrategy] ([Id])
-                    GO
 
                     ALTER TABLE [scheduling].[Job] CHECK CONSTRAINT [FK_scheduling.Job_scheduling.RepeatEndStrategy_RepeatEndStrategyId]
-                    GO
 
                     ALTER TABLE [scheduling].[Job]  WITH CHECK ADD  CONSTRAINT [FK_scheduling.Job_scheduling.RepeatInterval_RepeatIntervalId] FOREIGN KEY([RepeatIntervalId])
                     REFERENCES [scheduling].[RepeatInterval] ([Id])
-                    GO
 
                     ALTER TABLE [scheduling].[Job] CHECK CONSTRAINT [FK_scheduling.Job_scheduling.RepeatInterval_RepeatIntervalId]
-                    GO
                 END
                 ");
         }

@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Configuration;
 using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs;
 using Microsoft.EntityFrameworkCore;
@@ -8,7 +7,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Scheduling.Application.ServiceBus;
-using Scheduling.DataAccess;
 using Scheduling.DataAccess.Contexts;
 using Scheduling.Engine.Extensions;
 using Scheduling.Engine.Jobs;
@@ -26,8 +24,7 @@ namespace Scheduling.Application
                 .ConfigureServices((hostContext, services) =>
                 {
                     services.AddLogging();
-                    //services.AddSchedulingDataAccess(hostContext.Configuration.GetConnectionStringOrSetting("AgilityHealthShared"));
-                    services.AddDbContextPool<SchedulingContext>(options => { options.UseSqlServer(hostContext.Configuration.GetConnectionStringOrSetting("AgilityHealthShared")); });
+                    //services.AddDbContextPool<SchedulingContext>(options => { options.UseSqlServer(hostContext.Configuration.GetConnectionStringOrSetting("AgilityHealthShared")); });
                     services.AddSchedulingEngine();
                     services.AddSingleton<IServiceBus, ServiceBus.ServiceBus>();
                 })

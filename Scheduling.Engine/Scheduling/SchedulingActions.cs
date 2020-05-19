@@ -7,7 +7,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Quartz;
 using Quartz.Impl;
-using Quartz.Logging;
 using Quartz.Spi;
 using Scheduling.Engine.Jobs.Services;
 using Scheduling.SharedPackage.Models;
