@@ -46,9 +46,9 @@ namespace Scheduling.Engine.Scheduling
             await scheduler.Start(ct);
         }
 
-        public async Task DeleteJob(JobLocator deleteJobModel, CancellationToken ct)
+        public async Task DeleteJob(JobLocator jobLocator, CancellationToken ct)
         {
-            await RemoveJobIfAlreadyExists(deleteJobModel.JobIdentifier, deleteJobModel.SubscriptionName, ct);
+            await RemoveJobIfAlreadyExists(jobLocator.JobIdentifier, jobLocator.SubscriptionName, ct);
         }
 
         public async Task AddOrUpdateJob(Job job, CancellationToken ct)

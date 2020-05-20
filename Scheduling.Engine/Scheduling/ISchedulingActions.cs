@@ -9,6 +9,6 @@ namespace Scheduling.Engine.Scheduling
     {
         Task StartScheduler(IJobFactory jobFactory, CancellationToken ct);
         Task AddOrUpdateJob(Job job, CancellationToken ct);
-        Task DeleteJob(JobLocator deleteJobModel, CancellationToken ct);
+        Task DeleteJob(JobLocator jobLocator, CancellationToken ct);
     }
 }

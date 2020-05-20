@@ -8,6 +8,7 @@ namespace Scheduling.DataAccess.AutoMapper
         public JobProfile()
         {
             CreateMap<Job, SharedPackage.Models.Job>();
+            CreateMap<SharedPackage.Models.Job, Job>();
         }
     }
 }

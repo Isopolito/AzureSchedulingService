@@ -25,6 +25,8 @@ namespace Scheduling.Application
                     services.AddLogging();
                     services.AddSchedulingDataAccess(hostContext.Configuration.GetConnectionStringOrSetting("AgilityHealthShared"));
                     services.AddSchedulingEngine();
+
+                    services.AddSingleton<IScheduledJobExecutor, ScheduledJobExecutor>();
                     services.AddSingleton<IServiceBus, ServiceBus.ServiceBus>();
                 })
                 .ConfigureWebJobs(b =>

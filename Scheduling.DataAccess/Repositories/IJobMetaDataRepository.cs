@@ -10,16 +10,16 @@ namespace Scheduling.DataAccess.Repositories
         /// <summary>
         /// Return null if job can't be found for subscription and job identifier
         /// </summary>
-        Task<Job> GetJob(string subscriptionName, string jobIdentifier, CancellationToken ct);
+        Task<Job> Get(JobLocator jobLocator, CancellationToken ct = default);
 
         /// <summary>
         /// Return true if work was done. Return false if `job` exists already and there are no changes to be made
         /// </summary>
-        Task<bool> AddOrUpdate(Job job, CancellationToken ct);
+        Task<bool> AddOrUpdate(Job job, CancellationToken ct = default);
 
         /// <summary>
         /// Return true if there is a job to delete. If the job can't be found return false
         /// </summary>
-        Task<bool> DeleteJob(string subscriptionName, string jobIdentifier, CancellationToken ct);
+        Task<bool> Delete(JobLocator jobLocator, CancellationToken ct = default);
     }
 }

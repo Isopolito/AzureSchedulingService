@@ -1,11 +1,13 @@
 using System;
-using System.Text;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Azure.ServiceBus;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using Scheduling.DataAccess.Repositories;
 using Scheduling.Engine.Scheduling;
 using Scheduling.SharedPackage.Models;
 
@@ -14,26 +16,34 @@ namespace Scheduling.Application.AzureFunctions
     public class DeleteJobFunction
     {
         private readonly ISchedulingActions schedulingActions;
+        private readonly IJobMetaDataRepository jobMetaDataRepo;
 
-        public DeleteJobFunction(ISchedulingActions schedulingActions)
+        public DeleteJobFunction(ISchedulingActions schedulingActions, IJobMetaDataRepository jobMetaDataRepo)
         {
             this.schedulingActions = schedulingActions;
+            this.jobMetaDataRepo = jobMetaDataRepo;
         }
 
-        // TODO: Handle dead letters
-        public async Task DeleteJob([ServiceBusTrigger("scheduling-delete")]
-                                    Message message, ILogger logger, CancellationToken ct)
+        [FunctionName("Job")]
+        public async Task DeleteJob([HttpTrigger(AuthorizationLevel.Function, "delete", Route = null)]
+                                HttpRequest req,
+                                ILogger logger,
+                                CancellationToken ct)
         {
-            string body = null;
+            string requestBody = null;
             try
             {
-                body = Encoding.UTF8.GetString(message.Body);
-                var job = JsonConvert.DeserializeObject<JobLocator>(body);
-                await schedulingActions.DeleteJob(job, ct);
+                requestBody = await new StreamReader(req.Body).ReadToEndAsync();
+                var jobLocator = JsonConvert.DeserializeObject<JobLocator>(requestBody);
+
+                if (await jobMetaDataRepo.Delete(jobLocator, ct))
+                {
+                    await schedulingActions.DeleteJob(jobLocator, ct);
+                }
             }
             catch (Exception e)
             {
-                logger.LogError(e, $"Unable to delete job. Message: {body}");
+                logger.LogError(e, $"Unable to delete job. Message: {requestBody}");
             }
         }
     }

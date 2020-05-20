@@ -1,38 +1,44 @@
 using System;
+using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
-using Scheduling.Engine.Scheduling;
+using Newtonsoft.Json;
+using Scheduling.DataAccess.Repositories;
 using Scheduling.SharedPackage.Models;
 
 namespace Scheduling.Application.AzureFunctions
 {
     public class GetJobFunction
     {
-        private readonly ISchedulingActions schedulingActions;
+        private readonly IJobMetaDataRepository jobMetaDataRepo;
 
-        public GetJobFunction(ISchedulingActions schedulingActions)
+        public GetJobFunction(IJobMetaDataRepository jobMetaDataRepo)
         {
-            this.schedulingActions = schedulingActions;
+            this.jobMetaDataRepo = jobMetaDataRepo;
         }
 
         // TODO: Handle dead letters
         [FunctionName("Job")]
-        public Task<Job> GetJob([HttpTrigger(AuthorizationLevel.Function, "get", Route = null)]
+        public async Task<Job> GetJob([HttpTrigger(AuthorizationLevel.Function, "get", Route = null)]
                                 HttpRequest req,
                                 ILogger logger,
-                                ExecutionContext context)
+                                CancellationToken ct)
         {
-            string body = null;
+            string requestBody = null;
             try
             {
-                // Get Job Logic
+                requestBody = await new StreamReader(req.Body).ReadToEndAsync();
+                var jobLocator = JsonConvert.DeserializeObject<JobLocator>(requestBody);
+
+                return await jobMetaDataRepo.Get(jobLocator, ct);
             }
             catch (Exception e)
             {
-                logger.LogError(e, $"Unable to get job. Message: {body}");
+                logger.LogError(e, $"Unable to get job. Request body: {requestBody}");
             }
 
             return null;

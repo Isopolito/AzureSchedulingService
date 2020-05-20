@@ -5,7 +5,7 @@ using Scheduling.SharedPackage.Extensions;
 
 namespace Scheduling.SharedPackage.Models
 {
-    public class Job
+    public class Job : ModelLogicBase
     {
         // NOTE: A JobIdentifier must be unique only within the context of a SubscriptionName
         public string JobIdentifier { get; private set; }
@@ -93,11 +93,6 @@ namespace Scheduling.SharedPackage.Models
 
             UpdatedBy = updatedBy;
             UpdatedAt = DateTime.UtcNow;
-        }
-
-        private static void AssertArguments(bool predicate, string exceptionMessage)
-        {
-            if (!predicate) throw new ArgumentException(exceptionMessage);
         }
 
         private void AssertAllUpdateArguments(DateTime startDate, DateTime? endDate, RepeatEndStrategy repeatEndStrategy, 

@@ -1,11 +1,13 @@
 using System;
-using System.Text;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Azure.ServiceBus;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using Scheduling.DataAccess.Repositories;
 using Scheduling.Engine.Scheduling;
 using Scheduling.SharedPackage.Models;
 
@@ -14,26 +16,34 @@ namespace Scheduling.Application.AzureFunctions
     public class AddOrUpdateJobFunction
     {
         private readonly ISchedulingActions schedulingActions;
+        private readonly IJobMetaDataRepository jobMetaDataRepo;
 
-        public AddOrUpdateJobFunction(ISchedulingActions schedulingActions)
+        public AddOrUpdateJobFunction(ISchedulingActions schedulingActions, IJobMetaDataRepository jobMetaDataRepo)
         {
             this.schedulingActions = schedulingActions;
+            this.jobMetaDataRepo = jobMetaDataRepo;
         }
 
-        // TODO: Handle dead letters
-        public async Task AddOrUpdateJob([ServiceBusTrigger("scheduling-addorupdate")]
-                                         Message message, ILogger logger, CancellationToken ct)
+        [FunctionName("Job")]
+        public async Task AddOrUpdateJob([HttpTrigger(AuthorizationLevel.Function, "put", Route = null)]
+                                HttpRequest req,
+                                ILogger logger,
+                                CancellationToken ct)
         {
-            string body = null;
+            string requestBody = null;
             try
             {
-                body = Encoding.UTF8.GetString(message.Body);
-                var job = JsonConvert.DeserializeObject<Job>(body);
-                await schedulingActions.AddOrUpdateJob(job, ct);
+                requestBody = await new StreamReader(req.Body).ReadToEndAsync();
+                var job = JsonConvert.DeserializeObject<Job>(requestBody);
+
+                if (await jobMetaDataRepo.AddOrUpdate(job, ct))
+                {
+                    await schedulingActions.AddOrUpdateJob(job, ct);
+                }
             }
             catch (Exception e)
             {
-                logger.LogError(e, $"Unable to add or update job. Message: {body}");
+                logger.LogError(e, $"Unable to add or update job. Message: {requestBody}");
             }
         }
     }
