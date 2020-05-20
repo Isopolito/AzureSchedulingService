@@ -6,10 +6,10 @@ namespace Scheduling.SharedPackage.Extensions
     {
         public static bool IsEqualToTheMinute(this DateTime self, DateTime otherDateTime)
         {
-            var date1WithoutSeconds = new DateTime(self.Year, self.Month, self.Day, self.Hour, self.Minute, 0);
-            var date2WithoutSeconds = new DateTime(otherDateTime.Year, otherDateTime.Month, otherDateTime.Day, otherDateTime.Hour, otherDateTime.Minute, 0);
+            var selfNoSeconds = new DateTime(self.Year, self.Month, self.Day, self.Hour, self.Minute, 0);
+            var otherNoSeconds = new DateTime(otherDateTime.Year, otherDateTime.Month, otherDateTime.Day, otherDateTime.Hour, otherDateTime.Minute, 0);
 
-            return date1WithoutSeconds == date2WithoutSeconds;
+            return selfNoSeconds == otherNoSeconds;
         }
 
         public static bool IsEqualToTheMinute(this DateTime? self, DateTime? otherDateTime)

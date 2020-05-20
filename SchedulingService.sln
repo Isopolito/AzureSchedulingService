@@ -5,15 +5,17 @@ VisualStudioVersion = 16.0.29806.167
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Scheduling.LocalTester", "Scheduling.LocalTester\Scheduling.LocalTester.csproj", "{E80DDC11-4F9D-40B8-B216-1395599FC43C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Scheduling.Application", "Scheduling.Application\Scheduling.Application.csproj", "{5BD05060-CA39-41A8-9959-9D1039C5C99D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Scheduling.Executor", "Scheduling.Executor\Scheduling.Executor.csproj", "{5BD05060-CA39-41A8-9959-9D1039C5C99D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Scheduling.UnitTests", "Scheduling.UnitTests\Scheduling.UnitTests.csproj", "{53E4F4BC-8096-42E6-9973-00CC88F1ED16}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Scheduling.SharedPackage", "Scheduling.SharedPackage\Scheduling.SharedPackage.csproj", "{1C52BBC8-602D-4C16-942C-CFE075AF6AAA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Scheduling.Engine", "Scheduling.Engine\Scheduling.Engine.csproj", "{A0CAD7FC-78CD-4C8B-9531-22943F12FC99}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Scheduling.Engine", "Scheduling.Engine\Scheduling.Engine.csproj", "{A0CAD7FC-78CD-4C8B-9531-22943F12FC99}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Scheduling.DataAccess", "Scheduling.DataAccess\Scheduling.DataAccess.csproj", "{0C584BBD-8999-42C5-8577-05587D89FF2D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Scheduling.Api", "Scheduling.Api\Scheduling.Api.csproj", "{233DD00A-7AFA-4D15-8647-A7C2B9C9C48F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,6 +47,10 @@ Global
 		{0C584BBD-8999-42C5-8577-05587D89FF2D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0C584BBD-8999-42C5-8577-05587D89FF2D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0C584BBD-8999-42C5-8577-05587D89FF2D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{233DD00A-7AFA-4D15-8647-A7C2B9C9C48F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{233DD00A-7AFA-4D15-8647-A7C2B9C9C48F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{233DD00A-7AFA-4D15-8647-A7C2B9C9C48F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{233DD00A-7AFA-4D15-8647-A7C2B9C9C48F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

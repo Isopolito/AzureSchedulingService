@@ -5,12 +5,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Scheduling.Application.ServiceBus;
 using Scheduling.DataAccess.Extensions;
 using Scheduling.Engine.Extensions;
 using Scheduling.Engine.Jobs;
+using Scheduling.Executor.ServiceBus;
 
-namespace Scheduling.Application
+namespace Scheduling.Executor
 {
     public class Startup
     {

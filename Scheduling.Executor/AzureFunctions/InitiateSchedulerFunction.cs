@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 using Quartz.Spi;
 using Scheduling.Engine.Scheduling;
 
-namespace Scheduling.Application.AzureFunctions
+namespace Scheduling.Executor.AzureFunctions
 {
     public class InitiateSchedulerFunction
     {

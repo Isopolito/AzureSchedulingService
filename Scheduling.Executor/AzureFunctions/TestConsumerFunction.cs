@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Scheduling.SharedPackage.Models;
 
-namespace Scheduling.Application.AzureFunctions
+namespace Scheduling.Executor.AzureFunctions
 {
     public static class TestConsumerFunction
     {

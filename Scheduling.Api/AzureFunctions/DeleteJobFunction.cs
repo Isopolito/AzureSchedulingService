@@ -11,7 +11,7 @@ using Scheduling.DataAccess.Repositories;
 using Scheduling.Engine.Scheduling;
 using Scheduling.SharedPackage.Models;
 
-namespace Scheduling.Application.AzureFunctions
+namespace Scheduling.Api.AzureFunctions
 {
     public class DeleteJobFunction
     {
@@ -24,7 +24,7 @@ namespace Scheduling.Application.AzureFunctions
             this.jobMetaDataRepo = jobMetaDataRepo;
         }
 
-        [FunctionName("Job")]
+        [FunctionName("DeleteJob")]
         public async Task DeleteJob([HttpTrigger(AuthorizationLevel.Function, "delete", Route = null)]
                                 HttpRequest req,
                                 ILogger logger,

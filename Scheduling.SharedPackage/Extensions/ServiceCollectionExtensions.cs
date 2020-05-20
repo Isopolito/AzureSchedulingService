@@ -8,23 +8,19 @@ namespace Scheduling.SharedPackage.Extensions
 {
     public static class ServiceCollectionExtensions
     {
+        private const string HttpClientName = "ATISchedulingFunction";
+
         public static void AddSchedulingApi(this IServiceCollection services, SchedulingApiServiceOptions options)
-        {
-            services.AddSchedulingApi<ISchedulingApiService, SchedulingApiService>(options);
-
-            services.AddHttpClient("ATISchedulingFunction")
-                .AddTransientHttpErrorPolicy(policyBuilder => policyBuilder.RetryAsync(2));
-        }
-
-        private static void AddSchedulingApi<TInterface, TApiService>(this IServiceCollection services, SchedulingApiServiceOptions options) where TApiService : BaseApiService 
-            where TInterface : class, IApiService
         {
             services.AddScoped(sp =>
             {
                 var serviceAddress = options.ServiceAddressFetcher();
                 var factory = sp.GetRequiredService<IHttpClientFactory>();
-                return Activator.CreateInstance(typeof(TApiService), options.FunctionKeys, factory, serviceAddress) as TInterface;
+                return Activator.CreateInstance(typeof(SchedulingApiService), options.FunctionKeys, factory, serviceAddress) as ISchedulingApiService;
             });
+
+            services.AddHttpClient(HttpClientName)
+                .AddTransientHttpErrorPolicy(policyBuilder => policyBuilder.RetryAsync(2));
         }
     }
 }

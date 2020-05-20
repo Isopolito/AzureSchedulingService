@@ -22,34 +22,9 @@ namespace Scheduling.LocalTester
             var configuration = builder.Build();
 
             var azureConfig = configuration.GetSection("Azure");
-            var addJobQueueName = azureConfig["SchedulingAddJobQueueName"];
-            var deleteJobQueueName = azureConfig["SchedulingDeleteJobQueueName"];
             var connectionStringServiceBus = azureConfig["AzureWebJobsServiceBus"];
             var subscriptionName = azureConfig["SubscriptionName"];
 
-            await StartSendingMessages(connectionStringServiceBus, addJobQueueName, deleteJobQueueName, subscriptionName);
-        }
-
-        private static async Task StartSendingMessages(string connectionStringServiceBus, string addJobQueueName, string deleteJobQueueName, string subscriptionName)
-        {
-            var addJobQueueClient = new QueueClient(connectionStringServiceBus, addJobQueueName);
-            var deleteJobQueueClient = new QueueClient(connectionStringServiceBus, deleteJobQueueName);
-
-            Console.WriteLine("======================================================");
-            Console.WriteLine("Press any key to send a message....");
-            Console.WriteLine("======================================================");
-
-            while (true)
-            {
-                Console.ReadKey();
-
-                var jobIdentifier = $"This is a uid - {DateTime.Now}";
-                Thread.Sleep(1);
-                //await SendDeleteJobMessagesToQueueAsync(deleteJobQueueClient, jobIdentifier);
-                await SendAddJobMessagesToQueueAsync(addJobQueueClient, subscriptionName, jobIdentifier);
-            }
-
-            //await queueClient.CloseAsync();
         }
 
         private static async Task SendDeleteJobMessagesToQueueAsync(QueueClient queueClient, string subscriptionName, string jobIdentifier)

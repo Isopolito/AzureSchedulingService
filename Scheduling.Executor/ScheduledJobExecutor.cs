@@ -1,12 +1,12 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using Scheduling.Application.ServiceBus;
 using Scheduling.DataAccess.Repositories;
 using Scheduling.Engine.Jobs;
+using Scheduling.Executor.ServiceBus;
 using Scheduling.SharedPackage.Models;
 
-namespace Scheduling.Application
+namespace Scheduling.Executor
 {
     public class ScheduledJobExecutor : IScheduledJobExecutor
     {

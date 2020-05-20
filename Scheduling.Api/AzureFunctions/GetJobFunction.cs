@@ -10,7 +10,7 @@ using Newtonsoft.Json;
 using Scheduling.DataAccess.Repositories;
 using Scheduling.SharedPackage.Models;
 
-namespace Scheduling.Application.AzureFunctions
+namespace Scheduling.Api.AzureFunctions
 {
     public class GetJobFunction
     {
@@ -21,8 +21,7 @@ namespace Scheduling.Application.AzureFunctions
             this.jobMetaDataRepo = jobMetaDataRepo;
         }
 
-        // TODO: Handle dead letters
-        [FunctionName("Job")]
+        [FunctionName("GetJob")]
         public async Task<Job> GetJob([HttpTrigger(AuthorizationLevel.Function, "get", Route = null)]
                                 HttpRequest req,
                                 ILogger logger,

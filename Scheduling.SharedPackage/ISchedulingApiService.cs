@@ -3,7 +3,7 @@ using Scheduling.SharedPackage.Models;
 
 namespace Scheduling.SharedPackage
 {
-    public interface ISchedulingApiService : IApiService
+    public interface ISchedulingApiService
     {
         Task AddOrUpdateJob(Job job);
         Task<Job> GetJob(JobLocator jobLocator);

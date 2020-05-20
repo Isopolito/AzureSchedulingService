@@ -19,7 +19,7 @@ namespace Scheduling.SharedPackage.Extensions
 
             services.AddSchedulingApi(options);
 
-            var serviceProvider = services.BuildServiceProvider();
+            services.BuildServiceProvider();
             builder.Populate(services);
 
             base.Load(builder);

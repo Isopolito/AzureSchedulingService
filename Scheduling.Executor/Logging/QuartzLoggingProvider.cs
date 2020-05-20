@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using Quartz.Logging;
 using LogLevel = Quartz.Logging.LogLevel;
 
-namespace Scheduling.Application.Logging
+namespace Scheduling.Executor.Logging
 {
     public class QuartzLoggingProvider : ILogProvider
     {
