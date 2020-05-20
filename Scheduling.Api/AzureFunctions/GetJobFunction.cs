@@ -22,7 +22,7 @@ namespace Scheduling.Api.AzureFunctions
         }
 
         [FunctionName("GetJob")]
-        public async Task<Job> GetJob([HttpTrigger(AuthorizationLevel.Function, "get", Route = null)]
+        public async Task<Job> GetJob([HttpTrigger(AuthorizationLevel.Function, "get", Route = "Job/{subscriptionName}/{jobIdentifier}")]
                                 HttpRequest req,
                                 ILogger logger,
                                 CancellationToken ct)

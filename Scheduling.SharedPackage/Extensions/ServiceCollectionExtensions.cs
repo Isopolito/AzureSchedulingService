@@ -10,7 +10,7 @@ namespace Scheduling.SharedPackage.Extensions
     {
         private const string HttpClientName = "ATISchedulingFunction";
 
-        public static void AddSchedulingApi(this IServiceCollection services, SchedulingApiServiceOptions options)
+        public static IServiceCollection AddSchedulingApi(this IServiceCollection services, SchedulingApiServiceOptions options)
         {
             services.AddScoped(sp =>
             {
@@ -21,6 +21,8 @@ namespace Scheduling.SharedPackage.Extensions
 
             services.AddHttpClient(HttpClientName)
                 .AddTransientHttpErrorPolicy(policyBuilder => policyBuilder.RetryAsync(2));
+
+            return services;
         }
     }
 }

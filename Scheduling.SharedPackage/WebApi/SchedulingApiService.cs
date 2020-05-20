@@ -20,7 +20,7 @@ namespace Scheduling.SharedPackage.WebApi
             const string path = "/api/Job";
 
             var json = JsonConvert.SerializeObject(job);
-            await PutAsync(json, path, functionKeys.AddOrUpdateJobReceiver);
+            await PutAsync(json, path, functionKeys.AddOrUpdateJob);
         }
 
         public async Task<Job> GetJob(JobLocator jobLocator)

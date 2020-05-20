@@ -14,10 +14,6 @@ namespace Scheduling.Api
     // TODO: Get Loggly in place
     public class Startup : FunctionsStartup
     {
-        public Startup() : base()
-        {
-        }
-
         public override void Configure(IFunctionsHostBuilder builder)
         {
             var config = new ConfigurationBuilder()

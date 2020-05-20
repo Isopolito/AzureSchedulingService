@@ -35,7 +35,8 @@ namespace Scheduling.DataAccess.Repositories
                           .FirstOrDefaultAsync(j => j.SubscriptionName == job.SubscriptionName && j.JobIdentifier == job.JobIdentifier, ct);
 
             // Return false if there are no updates to be made
-            if (jobEntity.DomainName == job.DomainName
+            if (jobEntity != null
+                && jobEntity.DomainName == job.DomainName
                 && jobEntity.IsActive == job.IsActive
                 && jobEntity.RepeatEndStrategyId == (int) job.RepeatEndStrategy
                 && jobEntity.RepeatIntervalId == (int) job.RepeatInterval

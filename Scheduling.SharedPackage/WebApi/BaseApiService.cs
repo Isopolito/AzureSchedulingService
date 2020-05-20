@@ -104,8 +104,6 @@ namespace Scheduling.SharedPackage.WebApi
             var resource = CreateUri(functionKey, path);
             var content = GetStringHttpContent(json);
             var client = GetHttpClient();
-
-
             var response = await client.PostAsync(resource, content);
 
             await ParseResponse(response);

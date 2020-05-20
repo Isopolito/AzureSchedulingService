@@ -12,6 +12,7 @@ using Scheduling.Executor.ServiceBus;
 
 namespace Scheduling.Executor
 {
+    // NOTE: This webjob could just as well be an IHostedService if that better suites your needs
     public class Startup
     {
         // TODO: Get health checks in place

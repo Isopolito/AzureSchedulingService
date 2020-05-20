@@ -25,7 +25,7 @@ namespace Scheduling.Api.AzureFunctions
         }
 
         [FunctionName("AddOrUpdateJob")]
-        public async Task AddOrUpdateJob([HttpTrigger(AuthorizationLevel.Function, "put", Route = null)]
+        public async Task AddOrUpdateJob([HttpTrigger(AuthorizationLevel.Function, "put", Route = "Job")]
                                 HttpRequest req,
                                 ILogger logger,
                                 CancellationToken ct)

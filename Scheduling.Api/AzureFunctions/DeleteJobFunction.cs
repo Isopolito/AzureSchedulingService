@@ -25,17 +25,16 @@ namespace Scheduling.Api.AzureFunctions
         }
 
         [FunctionName("DeleteJob")]
-        public async Task DeleteJob([HttpTrigger(AuthorizationLevel.Function, "delete", Route = null)]
-                                HttpRequest req,
-                                ILogger logger,
-                                CancellationToken ct)
+        public async Task DeleteJob([HttpTrigger(AuthorizationLevel.Function, "delete", Route = "Job/{subscriptionName}/{jobIdentifier}")]
+                                    HttpRequest req,
+                                    string subscriptionName,
+                                    string jobIdentifier,
+                                    ILogger logger,
+                                    CancellationToken ct)
         {
-            string requestBody = null;
             try
             {
-                requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-                var jobLocator = JsonConvert.DeserializeObject<JobLocator>(requestBody);
-
+                var jobLocator = new JobLocator(subscriptionName, jobIdentifier);
                 if (await jobMetaDataRepo.Delete(jobLocator, ct))
                 {
                     await schedulingActions.DeleteJob(jobLocator, ct);
@@ -43,7 +42,7 @@ namespace Scheduling.Api.AzureFunctions
             }
             catch (Exception e)
             {
-                logger.LogError(e, $"Unable to delete job. Message: {requestBody}");
+                logger.LogError(e, $"Unable to delete job. SubscriptionName: {subscriptionName}, JobIdentifier: {jobIdentifier}");
             }
         }
     }
