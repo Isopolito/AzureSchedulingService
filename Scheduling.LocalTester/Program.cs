@@ -5,100 +5,150 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
+using Scheduling.SharedPackage;
 using Scheduling.SharedPackage.Enums;
-using Scheduling.SharedPackage.Messages;
-using Scheduling.SharedPackage.Scheduling;
+using Scheduling.SharedPackage.Extensions;
+using Scheduling.SharedPackage.Models;
 
 namespace Scheduling.LocalTester
 {
     internal class Program
     {
-        private static async Task Main(string[] args)
-        {
-            var builder = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+        private static SubscriptionClient subscriptionClient;
 
-            var configuration = builder.Build();
+        public static async Task Main(string[] args)
+        {
+            var configuration = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                .Build();
 
             var azureConfig = configuration.GetSection("Azure");
-            var addJobQueueName = azureConfig["SchedulingAddJobQueueName"];
-            var deleteJobQueueName = azureConfig["SchedulingDeleteJobQueueName"];
             var connectionStringServiceBus = azureConfig["AzureWebJobsServiceBus"];
+            var subscriptionName = azureConfig["SubscriptionName"];
+            var topicName = azureConfig["TopicName"];
+            subscriptionClient = new SubscriptionClient(connectionStringServiceBus, topicName, subscriptionName);
 
-            await StartSendingMessages(connectionStringServiceBus, addJobQueueName, deleteJobQueueName);
+            RegisterOnMessageHandlerAndReceiveMessages();
+
+            // Wire up the API package in DI to test that everything works as expected
+            var schedulingApiOptions = new SchedulingApiServiceOptions
+            {
+                ServiceAddressFetcher = () => configuration["SchedulingBaseUrl"],
+                FunctionKeys = new FunctionKeys
+                {
+                    GetJob = configuration["GetJobFuncKey"],
+                    AddOrUpdateJob = configuration["AddOrUpdateJobFuncKey"],
+                    DeleteJob = configuration["DeleteJobFuncKey"],
+                },
+            };
+
+            var serviceProvider = new ServiceCollection()
+                .AddLogging()
+                .AddSchedulingApi(schedulingApiOptions)
+                .BuildServiceProvider();
+
+            var schedulingApi = serviceProvider.GetService<ISchedulingApiService>();
+            await TestSchedulingApi(schedulingApi, subscriptionName);
         }
 
-        private static async Task StartSendingMessages(string connectionStringServiceBus, string addJobQueueName, string deleteJobQueueName)
+        private static async Task ProcessMessagesAsync(Message message, CancellationToken ct)
         {
-            var addJobQueueClient = new QueueClient(connectionStringServiceBus, addJobQueueName);
-            var deleteJobQueueClient = new QueueClient(connectionStringServiceBus, deleteJobQueueName);
-
-            Console.WriteLine("======================================================");
-            Console.WriteLine("Press any key to send a message....");
-            Console.WriteLine("======================================================");
-
-            while (true)
-            {
-                Console.ReadKey();
-
-                var jobUid = $"This is a uid - {DateTime.Now}";
-                Thread.Sleep(1);
-                //await SendDeleteJobMessagesToQueueAsync(deleteJobQueueClient, jobUid);
-                await SendAddJobMessagesToQueueAsync(addJobQueueClient, jobUid);
-            }
-
-            //await queueClient.CloseAsync();
+            Console.WriteLine($"Received Execute Job message: SequenceNumber:{message.SystemProperties.SequenceNumber} Body:{Encoding.UTF8.GetString(message.Body)}");
         }
 
-        private static async Task SendDeleteJobMessagesToQueueAsync(QueueClient queueClient, string jobUid)
+        // Use this handler to examine the exceptions received on the message pump.
+        private static Task ExceptionReceivedHandler(ExceptionReceivedEventArgs exceptionReceivedEventArgs)
         {
-            try
-            {
-                var deleteJobMessage = new DeleteJobMessage
-                {
-                    SubscriptionName = "scheduling-testsubscription-1",
-                    JobUid = jobUid,
-                };
-                var messageBody = JsonConvert.SerializeObject(deleteJobMessage);
-                var message = new Message(Encoding.UTF8.GetBytes(messageBody));
-
-                await queueClient.SendAsync(message);
-            }
-            catch (Exception exception)
-            {
-                Console.WriteLine($"Exception: {exception.Message}");
-            }
+            Console.WriteLine($"Message handler encountered an exception {exceptionReceivedEventArgs.Exception}.");
+            var context = exceptionReceivedEventArgs.ExceptionReceivedContext;
+            Console.WriteLine("Exception context for troubleshooting:");
+            Console.WriteLine($"- Endpoint: {context.Endpoint}");
+            Console.WriteLine($"- Entity Path: {context.EntityPath}");
+            Console.WriteLine($"- Executing Action: {context.Action}");
+            return Task.CompletedTask;
         }
 
-        private static async Task SendAddJobMessagesToQueueAsync(QueueClient queueClient, string jobUid)
+        private static void RegisterOnMessageHandlerAndReceiveMessages()
         {
-            try
+            // Configure the message handler options in terms of exception handling, number of concurrent messages to deliver, etc.
+            var messageHandlerOptions = new MessageHandlerOptions(ExceptionReceivedHandler)
             {
-                var jobSchedule = new JobSchedule
-                {
-                    RepeatCount = 99,
-                    StartAt = DateTime.Now,
-                    EndAt = DateTime.Now.AddMinutes(15),
-                    RepeatInterval = RepeatIntervals.Never,
-                };
+                // Maximum number of concurrent calls to the callback ProcessMessagesAsync(), set to 1 for simplicity.
+                // Set it according to how many messages the application wants to process in parallel.
+                MaxConcurrentCalls = 1,
 
-                var scheduleJobMessage = new ScheduleJobMessage
-                {
-                    SubscriptionName = "scheduling-testsubscription-1",
-                    JobUid = jobUid,
-                    Schedule = jobSchedule,
-                };
-                var messageBody = JsonConvert.SerializeObject(scheduleJobMessage);
-                var message = new Message(Encoding.UTF8.GetBytes(messageBody));
+                // Indicates whether the message pump should automatically complete the messages after returning from user callback.
+                // False below indicates the complete operation is handled by the user callback as in ProcessMessagesAsync().
+                AutoComplete = false
+            };
 
-                await queueClient.SendAsync(message);
-            }
-            catch (Exception exception)
+            // Register the function that processes messages.
+            subscriptionClient.RegisterMessageHandler(ProcessMessagesAsync, ExceptionReceivedHandler);
+        }
+
+        private static async Task TestSchedulingApi(ISchedulingApiService apiService, string subscriptionName)
+        {
+            Console.WriteLine(@"
+| *************************************************************************************************|
+| Enter one of the following keys to test the scheduler:                                           |
+| *************************************************************************************************|
+| a - Add or Update a job (will be scheduled 1 minute into the future and will only run once)      |
+| d - Delete a job                                                                                 |
+| g - get a job                                                                                    |
+| q - quit                                                                                         |
+| -------------------------------------------------------------------------------------------------|
+");
+            await Task.Run(async () =>
             {
-                Console.WriteLine($"Exception: {exception.Message}");
-            }
+                while (true)
+                {
+                    try
+                    {
+                        Job job;
+                        string jobIdentifier;
+                        var key = Console.ReadKey(true);
+
+                        switch (key.KeyChar)
+                        {
+                            case 'q':
+                            case 'Q':
+                                return;
+                            case 'a':
+                            case 'A':
+                                Console.Write("[UPSERT] Enter Job Identifier: ");
+                                jobIdentifier = Console.ReadLine();
+                                job = new Job(subscriptionName, jobIdentifier, "tester");
+                                job.Update("testing domain", DateTime.Now.AddMinutes(1), null, RepeatEndStrategy.NotUsed, RepeatInterval.NotUsed, 0, "test");
+                                await apiService.AddOrUpdateJob(job);
+                                break;
+                            case 'd':
+                            case 'D':
+                                Console.Write("[DELETE] Enter Job Identifier: ");
+                                jobIdentifier = Console.ReadLine();
+                                await apiService.DeleteJob(new JobLocator(subscriptionName, jobIdentifier));
+                                break;
+                            case 'g':
+                            case 'G':
+                                Console.Write("[GET] Enter Job Identifier: ");
+                                jobIdentifier = Console.ReadLine();
+                                job = await apiService.GetJob(new JobLocator(subscriptionName, jobIdentifier));
+                                Console.WriteLine($"Job: {(job == null ? "Does not exist" : JsonConvert.SerializeObject(job))}");
+                                break;
+                        }
+                    }
+                    catch (ArgumentException e)
+                    {
+                        Console.WriteLine($"Bad parameter(s) supplied when creating Job or JobLocator: {e.Message}");
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine($"Unknown Error: {e.Message}");
+                    }
+                }
+            });
         }
     }
 }
