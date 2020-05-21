@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.29806.167
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Scheduling.LocalTester", "Scheduling.LocalTester\Scheduling.LocalTester.csproj", "{E80DDC11-4F9D-40B8-B216-1395599FC43C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Scheduling.Executor", "Scheduling.Executor\Scheduling.Executor.csproj", "{5BD05060-CA39-41A8-9959-9D1039C5C99D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Scheduling.Orchestrator", "Scheduling.Orchestrator\Scheduling.Orchestrator.csproj", "{5BD05060-CA39-41A8-9959-9D1039C5C99D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Scheduling.UnitTests", "Scheduling.UnitTests\Scheduling.UnitTests.csproj", "{53E4F4BC-8096-42E6-9973-00CC88F1ED16}"
 EndProject

@@ -44,7 +44,7 @@ namespace Scheduling.DataAccess.Migrations
                      CONSTRAINT [PK_scheduling.RepeatInterval] PRIMARY KEY CLUSTERED 
                     (
                         [Id] ASC
-                    )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+                    )WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF) ON [PRIMARY]
                     ) ON [PRIMARY]
                 END
                 ");
@@ -64,13 +64,13 @@ namespace Scheduling.DataAccess.Migrations
                                  WHERE TABLE_SCHEMA = 'scheduling' 
                                  AND  TABLE_NAME = 'RepeatEndStrategy'))
                 BEGIN
-                   CREATE TABLE [scheduling].[RepeatEndStrategy](
+                    CREATE TABLE [scheduling].[RepeatEndStrategy](
                         [Id] [int] NOT NULL,
                         [Name] [nvarchar](75) NOT NULL,
                      CONSTRAINT [PK_scheduling.RepeatEndStrategy] PRIMARY KEY CLUSTERED 
                     (
                         [Id] ASC
-                    )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+                    )WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF) ON [PRIMARY]
                     ) ON [PRIMARY]
                 END
                 ");
@@ -109,8 +109,26 @@ namespace Scheduling.DataAccess.Migrations
                      CONSTRAINT [PK_scheduling.Job] PRIMARY KEY CLUSTERED 
                     (
                         [JobId] ASC
-                    )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+                    )WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF) ON [PRIMARY]
                     ) ON [PRIMARY]
+
+                    CREATE NONCLUSTERED INDEX [IX_RepeatEndStrategyId] ON [scheduling].[Job]
+                    (
+                        [RepeatEndStrategyId] ASC
+                    )WITH (STATISTICS_NORECOMPUTE = OFF, DROP_EXISTING = OFF, ONLINE = OFF) ON [PRIMARY]
+
+                    CREATE NONCLUSTERED INDEX [IX_RepeatIntervalId] ON [scheduling].[Job]
+                    (
+                        [RepeatIntervalId] ASC
+                    )WITH (STATISTICS_NORECOMPUTE = OFF, DROP_EXISTING = OFF, ONLINE = OFF) ON [PRIMARY]
+
+                    SET ANSI_PADDING ON
+
+                    CREATE UNIQUE NONCLUSTERED INDEX [UX_scheduling_Job_JobIdentifier_SubscriptionName] ON [scheduling].[Job]
+                    (
+                        [JobIdentifier] ASC,
+                        [SubscriptionName] ASC
+                    )WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF) ON [PRIMARY]
 
                     ALTER TABLE [scheduling].[Job] ADD  CONSTRAINT [DF_Job_IsActive]  DEFAULT ((0)) FOR [IsActive]
 

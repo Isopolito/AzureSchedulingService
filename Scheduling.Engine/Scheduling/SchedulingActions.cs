@@ -19,11 +19,13 @@ namespace Scheduling.Engine.Scheduling
         private readonly ILogger<SchedulingActions> logger;
         private readonly StdSchedulerFactory standardFactory;
         private readonly IScheduledJobBuilder scheduledJobBuilder;
+        private readonly IJobFactory jobFactory;
 
-        public SchedulingActions(ILogger<SchedulingActions> logger, IConfiguration configuration, IScheduledJobBuilder scheduledJobBuilder)
+        public SchedulingActions(ILogger<SchedulingActions> logger, IConfiguration configuration, IScheduledJobBuilder scheduledJobBuilder, IJobFactory jobFactory)
         {
             this.logger = logger;
             this.scheduledJobBuilder = scheduledJobBuilder;
+            this.jobFactory = jobFactory;
 
             var quartzSettingsDict = configuration.GetSection("Quartz")
                 .GetChildren()
@@ -37,8 +39,10 @@ namespace Scheduling.Engine.Scheduling
             standardFactory = new StdSchedulerFactory(quartzSettings);
         }
 
-        public async Task StartScheduler(IJobFactory jobFactory, CancellationToken ct)
+        public async Task StartSchedulerIfNeeded(CancellationToken ct)
         {
+            if (scheduler != null) return;
+
             // TODO: Get Quartz logging integrated into ILogger
             //LogProvider.SetCurrentLogProvider(new QuartzLoggingProvider(logger));
             scheduler = await standardFactory.GetScheduler(ct);
@@ -48,11 +52,14 @@ namespace Scheduling.Engine.Scheduling
 
         public async Task DeleteJob(JobLocator jobLocator, CancellationToken ct)
         {
+            await StartSchedulerIfNeeded(ct);
             await RemoveJobIfAlreadyExists(jobLocator.JobIdentifier, jobLocator.SubscriptionName, ct);
         }
 
         public async Task AddOrUpdateJob(Job job, CancellationToken ct)
         {
+            await StartSchedulerIfNeeded(ct);
+
             var jobResult = scheduledJobBuilder.BuildJob(job);
             if (jobResult.IsFailure)
             {

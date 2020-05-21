@@ -1,10 +1,8 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Scheduling.Api;
 using Scheduling.DataAccess.Extensions;
-using Scheduling.Engine.Extensions;
 
 [assembly: FunctionsStartup(typeof(Startup))]
 namespace Scheduling.Api
@@ -24,8 +22,6 @@ namespace Scheduling.Api
 
             var connString = config["AgilityHealthShared"];
             builder.Services.AddSchedulingDataAccess(connString);
-
-            builder.Services.AddSchedulingEngine();
         }
     }
 }

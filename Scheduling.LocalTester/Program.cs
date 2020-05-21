@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json;
 using Scheduling.SharedPackage;
 using Scheduling.SharedPackage.Enums;
 using Scheduling.SharedPackage.Extensions;

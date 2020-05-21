@@ -31,25 +31,30 @@ namespace Scheduling.DataAccess.Repositories
 
         public async Task<bool> AddOrUpdate(Job job, CancellationToken ct = default)
         {
-            var jobEntity = await context.Jobs
+            var existingJobEntity = await context.Jobs
                           .FirstOrDefaultAsync(j => j.SubscriptionName == job.SubscriptionName && j.JobIdentifier == job.JobIdentifier, ct);
 
             // Return false if there are no updates to be made
-            if (jobEntity != null
-                && jobEntity.DomainName == job.DomainName
-                && jobEntity.IsActive == job.IsActive
-                && jobEntity.RepeatEndStrategyId == (int) job.RepeatEndStrategy
-                && jobEntity.RepeatIntervalId == (int) job.RepeatInterval
-                && jobEntity.StartAt.IsEqualToTheMinute(job.StartAt)
-                && jobEntity.EndAt.IsEqualToTheMinute(job.EndAt)
-                && jobEntity.CronExpressionOverride == job.CronExpressionOverride
-                && jobEntity.RepeatOccurrenceNumber == job.RepeatOccurrenceNumber)
+            if (existingJobEntity != null
+                && existingJobEntity.DomainName == job.DomainName
+                && existingJobEntity.IsActive == job.IsActive
+                && existingJobEntity.RepeatEndStrategyId == (int) job.RepeatEndStrategy
+                && existingJobEntity.RepeatIntervalId == (int) job.RepeatInterval
+                && existingJobEntity.StartAt.IsEqualToTheMinute(job.StartAt)
+                && existingJobEntity.EndAt.IsEqualToTheMinute(job.EndAt)
+                && existingJobEntity.CronExpressionOverride == job.CronExpressionOverride
+                && existingJobEntity.RepeatOccurrenceNumber == job.RepeatOccurrenceNumber)
             {
                 return false;
             }
 
-            jobEntity = mapper.Map<Job, Entities.Job>(job);
-            context.Jobs.Attach(jobEntity);
+            var updatedJobEntity = mapper.Map<Job, Entities.Job>(job);
+            if (existingJobEntity != null)
+            {
+                updatedJobEntity.JobId = existingJobEntity.JobId;
+            }
+
+            context.Jobs.Attach(updatedJobEntity);
             await context.SaveChangesAsync(ct);
 
             return true;

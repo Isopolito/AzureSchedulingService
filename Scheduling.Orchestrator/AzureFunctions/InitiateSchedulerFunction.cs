@@ -2,7 +2,6 @@ using System;
 using System.Threading;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
-using Quartz.Spi;
 using Scheduling.Engine.Scheduling;
 
 namespace Scheduling.Executor.AzureFunctions
@@ -17,13 +16,13 @@ namespace Scheduling.Executor.AzureFunctions
         }
 
         [NoAutomaticTrigger]
-        public void InitiateScheduler(ILogger logger, IJobFactory jobFactory, CancellationToken ct)
+        public void InitiateScheduler(ILogger logger, CancellationToken ct)
         {
             try
             {
                 // Once the scheduler is running, all actions will be initiated from the functions that listen to the service bus
                 logger.LogInformation("Started scheduler");
-                schedulingActions.StartScheduler(jobFactory, ct);
+                schedulingActions.StartSchedulerIfNeeded(ct);
             }
             catch (Exception e)
             {
