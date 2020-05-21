@@ -95,3 +95,6 @@ Tests the Scheduling.Engine related logic
 
 ## Usage
 To run locally, start Scheduling.Orchestrator, Scheduling.Api, and Scheduling.LocalTester. Use the console app in LocalTester to verify everything is working correctly. To add/update migrations from visual studio, select the Orchestrator as the project to run, and from within the Package Manager Console window, select the DataAccess project.
+
+## Notes
+It wouldn't take a lot of work to use this service without azure. The azure functions in Api could be replaced with an MVC controller. The Orchestrator function the same using any messaging technology that supports the equivalent of the azure topic pub/sub pattern.
