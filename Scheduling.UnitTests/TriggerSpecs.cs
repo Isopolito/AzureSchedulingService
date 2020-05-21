@@ -1,14 +1,15 @@
 using System;
 using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
+using Scheduling.Engine.Extensions;
 using Scheduling.Engine.Jobs.Services;
-using Scheduling.Engine.Scheduling;
 using Scheduling.SharedPackage.Enums;
 using Scheduling.SharedPackage.Models;
 
 namespace Scheduling.UnitTests
 {
-    public class TriggerSpecs
+    internal class TriggerSpecs
     {
         private IScheduledJobBuilder scheduledJobBuilder;
         private static Job DefaultJob => new Job("subscription name", "unique identifier", "Tester");
@@ -16,8 +17,11 @@ namespace Scheduling.UnitTests
         [SetUp]
         public void Setup()
         {
-            var cronExpressionGenerator = new CronExpressionGenerator();
-            scheduledJobBuilder = new ScheduledJobBuilder(cronExpressionGenerator);
+            var serviceProvider = new ServiceCollection()
+                .AddSchedulingEngine()
+                .BuildServiceProvider();
+
+            scheduledJobBuilder = serviceProvider.GetService<IScheduledJobBuilder>();
         }
 
         [Test]

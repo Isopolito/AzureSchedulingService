@@ -12,7 +12,7 @@ using Scheduling.SharedPackage.Models;
 
 namespace Scheduling.Engine.Jobs.Services
 {
-    public class ScheduledJobBuilder : IScheduledJobBuilder
+    internal class ScheduledJobBuilder : IScheduledJobBuilder
     {
         private readonly ICronExpressionGenerator cronExpressionGenerator;
 

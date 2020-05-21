@@ -7,7 +7,7 @@ using Scheduling.SharedPackage.Models;
 
 namespace Scheduling.Engine.Jobs
 {
-    public class QuartzJob : IJob
+    internal class QuartzJob : IJob
     {
         private readonly ILogger<QuartzJob> logger;
         private readonly IScheduledJobExecutor executor;

@@ -1,22 +1,27 @@
 using System;
 using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
+using Scheduling.Engine.Extensions;
 using Scheduling.Engine.Scheduling;
 using Scheduling.SharedPackage.Enums;
 using Scheduling.SharedPackage.Models;
 
 namespace Scheduling.UnitTests
 {
-    public class CronExpressionGeneratorSpecs
+    internal class CronExpressionGeneratorSpecs
     {
-        private CronExpressionGenerator cronExpressionGenerator;
-
+        private readonly ICronExpressionGenerator cronExpressionGenerator;
         private static Job DefaultJob => new Job("Subscription", "JobIdentifier", "Tester");
 
-        [SetUp]
-        public void Setup()
+
+        public CronExpressionGeneratorSpecs()
         {
-            cronExpressionGenerator = new CronExpressionGenerator();
+            var serviceProvider = new ServiceCollection()
+                .AddSchedulingEngine()
+                .BuildServiceProvider();
+
+            cronExpressionGenerator = serviceProvider.GetService<ICronExpressionGenerator>();
         }
 
         [Test]
@@ -43,7 +48,7 @@ namespace Scheduling.UnitTests
             cronExpressions.Count.Should().Be(1);
             cronExpressions[0].Should().Be("0 0 17 ? * * *");
         }
-        
+
         [Test]
         public void Start_At_5_5_2022_With_Repeat_Weekly()
         {

@@ -23,7 +23,7 @@ namespace Scheduling.Orchestrator
                 .ConfigureServices((hostContext, services) =>
                 {
                     services.AddLogging();
-                    services.AddSchedulingDataAccess(hostContext.Configuration.GetConnectionStringOrSetting("JobMetaDataConnString"));
+                    services.AddSchedulingDataAccess(hostContext.Configuration.GetConnectionStringOrSetting("SchedulingConnString"));
                     services.AddSingleton<IScheduledJobExecutor, ScheduledJobExecutor>();
                     services.AddSingleton<IServiceBus, ServiceBus.ServiceBus>();
                     services.AddSchedulingEngine(); // Needs to be last service added so that IScheduledJobExecutor is already in IoC container

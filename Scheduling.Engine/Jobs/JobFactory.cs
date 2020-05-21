@@ -6,7 +6,7 @@ using Quartz.Spi;
 
 namespace Scheduling.Engine.Jobs
 {
-    public class JobFactory : IJobFactory
+    internal class JobFactory : IJobFactory
     {
         protected readonly IServiceProvider ServiceProvider;
         protected readonly ConcurrentDictionary<IJob, IServiceScope> Scopes = new ConcurrentDictionary<IJob, IServiceScope>();

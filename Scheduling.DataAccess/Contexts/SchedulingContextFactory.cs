@@ -9,7 +9,7 @@ namespace Scheduling.DataAccess.Contexts
     internal class SchedulingContextFactory : IDesignTimeDbContextFactory<SchedulingContext>
     {
         private const string AspNetCoreEnvironment = "ASPNETCORE_ENVIRONMENT";
-        private const string ConnectionStringName = "JobMetaDataConnString";
+        private const string ConnectionStringName = "SchedulingConnString";
 
         public SchedulingContext CreateDbContext(string[] args)
         {

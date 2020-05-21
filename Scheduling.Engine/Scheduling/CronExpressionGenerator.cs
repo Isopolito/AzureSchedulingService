@@ -7,7 +7,7 @@ using Scheduling.SharedPackage.Models;
 
 namespace Scheduling.Engine.Scheduling
 {
-    public class CronExpressionGenerator : ICronExpressionGenerator
+    internal class CronExpressionGenerator : ICronExpressionGenerator
     {
         public IReadOnlyList<string> Create(Job job)
         {

@@ -6,7 +6,7 @@ using Scheduling.SharedPackage.Models;
 
 namespace Scheduling.UnitTests
 {
-    public class JobBuilderSpecs
+    internal class JobBuilderSpecs
     {
         [Test]
         public void Throw_Exception_If_SubscriptionName_Is_Missing()

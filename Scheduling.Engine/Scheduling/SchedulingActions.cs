@@ -13,7 +13,7 @@ using Scheduling.SharedPackage.Models;
 
 namespace Scheduling.Engine.Scheduling
 {
-    public class SchedulingActions : ISchedulingActions, IDisposable
+    internal class SchedulingActions : ISchedulingActions, IDisposable
     {
         private IScheduler scheduler;
         private readonly ILogger<SchedulingActions> logger;

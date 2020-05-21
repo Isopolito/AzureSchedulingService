@@ -20,7 +20,7 @@ namespace Scheduling.Api
                 .AddEnvironmentVariables()
                 .Build();
 
-            var connString = config["JobMetaDataConnString"];
+            var connString = config["SchedulingConnString"];
             builder.Services.AddSchedulingDataAccess(connString);
         }
     }

@@ -10,7 +10,7 @@ using Scheduling.Engine.Constants;
 
 namespace Scheduling.Orchestrator.ServiceBus
 {
-    public class ServiceBus : IServiceBus, IDisposable
+    internal class ServiceBus : IServiceBus, IDisposable
     {
         private readonly ILogger<ServiceBus> logger;
         private readonly string topicName;
