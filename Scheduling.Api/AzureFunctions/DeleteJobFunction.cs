@@ -9,6 +9,7 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Scheduling.DataAccess.Repositories;
+using Scheduling.SharedPackage.Constants;
 using Scheduling.SharedPackage.Models;
 
 namespace Scheduling.Api.AzureFunctions
@@ -23,7 +24,7 @@ namespace Scheduling.Api.AzureFunctions
         }
 
         [FunctionName("DeleteJob")]
-        [return: ServiceBus("scheduling-delete", Connection = "ServiceBusConnectionString")]
+        [return: ServiceBus(MessageQueueNames.Delete, Connection = "ServiceBusConnectionString")]
         public async Task<Message> DeleteJob([HttpTrigger(AuthorizationLevel.Function, "delete", Route = "Job/{subscriptionName}/{jobIdentifier}")]
                                     HttpRequest req,
                                     string subscriptionName,

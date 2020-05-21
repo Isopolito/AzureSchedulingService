@@ -4,7 +4,7 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Scheduling.Engine.Scheduling;
 
-namespace Scheduling.Executor.AzureFunctions
+namespace Scheduling.Orchestrator.AzureFunctions
 {
     public class InitiateSchedulerFunction
     {
@@ -22,7 +22,7 @@ namespace Scheduling.Executor.AzureFunctions
             {
                 // Once the scheduler is running, all actions will be initiated from the functions that listen to the service bus
                 logger.LogInformation("Started scheduler");
-                schedulingActions.StartSchedulerIfNeeded(ct);
+                schedulingActions.StartScheduler(ct);
             }
             catch (Exception e)
             {

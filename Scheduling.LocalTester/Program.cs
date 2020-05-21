@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
 using Scheduling.SharedPackage;
 using Scheduling.SharedPackage.Enums;
 using Scheduling.SharedPackage.Extensions;
@@ -56,7 +57,6 @@ namespace Scheduling.LocalTester
         private static async Task ProcessMessagesAsync(Message message, CancellationToken ct)
         {
             Console.WriteLine($"Received Execute Job message: SequenceNumber:{message.SystemProperties.SequenceNumber} Body:{Encoding.UTF8.GetString(message.Body)}");
-            await subscriptionClient.CompleteAsync(message.SystemProperties.LockToken);
         }
 
         // Use this handler to examine the exceptions received on the message pump.
@@ -92,26 +92,25 @@ namespace Scheduling.LocalTester
         private static async Task TestSchedulingApi(ISchedulingApiService apiService, string subscriptionName)
         {
             Console.WriteLine(@"
- *****************************************************
- Enter one of the following keys to test the scheduler:
- *****************************************************
- a - Add or Update a job
- d - Delete a job
- g - get a job
- q - quit
- 
- ------------------------------------------------------------
+| *************************************************************************************************|
+| Enter one of the following keys to test the scheduler:                                           |
+| *************************************************************************************************|
+| a - Add or Update a job (will be scheduled 1 minute into the future and will only run once)      |
+| d - Delete a job                                                                                 |
+| g - get a job                                                                                    |
+| q - quit                                                                                         |
+| -------------------------------------------------------------------------------------------------|
 ");
-            try
+            await Task.Run(async () =>
             {
-                await Task.Run(async () =>
+                while (true)
                 {
-                    while (true)
+                    try
                     {
+                        Job job;
                         string jobIdentifier;
-                        Job job = null;
-
                         var key = Console.ReadKey(true);
+
                         switch (key.KeyChar)
                         {
                             case 'q':
@@ -136,16 +135,20 @@ namespace Scheduling.LocalTester
                                 Console.Write("[GET] Enter Job Identifier: ");
                                 jobIdentifier = Console.ReadLine();
                                 job = await apiService.GetJob(new JobLocator(subscriptionName, jobIdentifier));
-                                Console.WriteLine($"Job: {job}");
+                                Console.WriteLine($"Job: {(job == null ? "Does not exist" : JsonConvert.SerializeObject(job))}");
                                 break;
                         }
                     }
-                });
-            }
-            catch (Exception exception)
-            {
-                Console.WriteLine($"Exception: {exception.Message}");
-            }
+                    catch (ArgumentException e)
+                    {
+                        Console.WriteLine($"Bad parameter(s) supplied when creating Job or JobLocator: {e.Message}");
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine($"Unknown Error: {e.Message}");
+                    }
+                }
+            });
         }
     }
 }

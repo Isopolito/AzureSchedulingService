@@ -6,7 +6,7 @@ namespace Scheduling.Engine.Scheduling
 {
     public interface ISchedulingActions
     {
-        Task StartSchedulerIfNeeded(CancellationToken ct);
+        Task StartScheduler(CancellationToken ct);
         Task AddOrUpdateJob(Job job, CancellationToken ct);
         Task DeleteJob(JobLocator jobLocator, CancellationToken ct);
     }

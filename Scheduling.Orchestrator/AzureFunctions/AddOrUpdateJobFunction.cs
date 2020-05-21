@@ -7,6 +7,7 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Scheduling.Engine.Scheduling;
+using Scheduling.SharedPackage.Constants;
 using Scheduling.SharedPackage.Models;
 
 namespace Scheduling.Orchestrator.AzureFunctions
@@ -21,7 +22,7 @@ namespace Scheduling.Orchestrator.AzureFunctions
         }
 
         // TODO: Handle dead letters
-        public async Task AddOrUpdateJob([ServiceBusTrigger("scheduling-add")] Message message, ILogger logger, CancellationToken ct)
+        public async Task AddOrUpdateJob([ServiceBusTrigger(MessageQueueNames.AddOrUpdate)] Message message, ILogger logger, CancellationToken ct)
         {
             string body = null;
             try

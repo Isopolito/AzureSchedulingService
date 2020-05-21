@@ -3,10 +3,10 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Scheduling.DataAccess.Repositories;
 using Scheduling.Engine.Jobs;
-using Scheduling.Executor.ServiceBus;
+using Scheduling.Orchestrator.ServiceBus;
 using Scheduling.SharedPackage.Models;
 
-namespace Scheduling.Executor
+namespace Scheduling.Orchestrator
 {
     public class ScheduledJobExecutor : IScheduledJobExecutor
     {

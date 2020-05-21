@@ -39,10 +39,8 @@ namespace Scheduling.Engine.Scheduling
             standardFactory = new StdSchedulerFactory(quartzSettings);
         }
 
-        public async Task StartSchedulerIfNeeded(CancellationToken ct)
+        public async Task StartScheduler(CancellationToken ct)
         {
-            if (scheduler != null) return;
-
             // TODO: Get Quartz logging integrated into ILogger
             //LogProvider.SetCurrentLogProvider(new QuartzLoggingProvider(logger));
             scheduler = await standardFactory.GetScheduler(ct);
@@ -52,14 +50,11 @@ namespace Scheduling.Engine.Scheduling
 
         public async Task DeleteJob(JobLocator jobLocator, CancellationToken ct)
         {
-            await StartSchedulerIfNeeded(ct);
             await RemoveJobIfAlreadyExists(jobLocator.JobIdentifier, jobLocator.SubscriptionName, ct);
         }
 
         public async Task AddOrUpdateJob(Job job, CancellationToken ct)
         {
-            await StartSchedulerIfNeeded(ct);
-
             var jobResult = scheduledJobBuilder.BuildJob(job);
             if (jobResult.IsFailure)
             {

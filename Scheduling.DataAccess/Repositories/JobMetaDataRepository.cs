@@ -52,9 +52,14 @@ namespace Scheduling.DataAccess.Repositories
             if (existingJobEntity != null)
             {
                 updatedJobEntity.JobId = existingJobEntity.JobId;
+                context.Entry(existingJobEntity).State = EntityState.Detached;
+                context.Jobs.Update(updatedJobEntity);
+            }
+            else
+            {
+                await context.Jobs.AddAsync(updatedJobEntity, ct);
             }
 
-            context.Jobs.Attach(updatedJobEntity);
             await context.SaveChangesAsync(ct);
 
             return true;

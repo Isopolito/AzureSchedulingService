@@ -10,6 +10,7 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Scheduling.DataAccess.Repositories;
+using Scheduling.SharedPackage.Constants;
 using Scheduling.SharedPackage.Models;
 
 namespace Scheduling.Api.AzureFunctions
@@ -24,7 +25,7 @@ namespace Scheduling.Api.AzureFunctions
         }
 
         [FunctionName("AddOrUpdateJob")]
-        [return: ServiceBus("scheduling-addorupdate", Connection = "ServiceBusConnectionString")]
+        [return: ServiceBus(MessageQueueNames.AddOrUpdate, Connection = "ServiceBusConnectionString")]
         public async Task<Message> AddOrUpdateJob([HttpTrigger(AuthorizationLevel.Function, "put", Route = "Job")]
                                 HttpRequest req,
                                 ILogger logger,

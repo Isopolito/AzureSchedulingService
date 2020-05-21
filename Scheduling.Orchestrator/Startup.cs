@@ -7,9 +7,9 @@ using Microsoft.Extensions.Logging;
 using Scheduling.DataAccess.Extensions;
 using Scheduling.Engine.Extensions;
 using Scheduling.Engine.Jobs;
-using Scheduling.Executor.ServiceBus;
+using Scheduling.Orchestrator.ServiceBus;
 
-namespace Scheduling.Executor
+namespace Scheduling.Orchestrator
 {
     // NOTE: This webjob could just as well be an IHostedService if that better suites your needs
     public class Startup
@@ -23,11 +23,10 @@ namespace Scheduling.Executor
                 .ConfigureServices((hostContext, services) =>
                 {
                     services.AddLogging();
-                    services.AddSchedulingDataAccess(hostContext.Configuration.GetConnectionStringOrSetting("AgilityHealthShared"));
-                    services.AddSchedulingEngine();
-
+                    services.AddSchedulingDataAccess(hostContext.Configuration.GetConnectionStringOrSetting("JobMetaDataConnString"));
                     services.AddSingleton<IScheduledJobExecutor, ScheduledJobExecutor>();
                     services.AddSingleton<IServiceBus, ServiceBus.ServiceBus>();
+                    services.AddSchedulingEngine(); // Needs to be last service added so that IScheduledJobExecutor is already in IoC container
                 })
                 .ConfigureWebJobs(b =>
                 {

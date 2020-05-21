@@ -20,7 +20,7 @@ namespace Scheduling.Api
                 .AddEnvironmentVariables()
                 .Build();
 
-            var connString = config["AgilityHealthShared"];
+            var connString = config["JobMetaDataConnString"];
             builder.Services.AddSchedulingDataAccess(connString);
         }
     }

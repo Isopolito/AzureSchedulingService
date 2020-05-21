@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace Scheduling.Executor.ServiceBus
+namespace Scheduling.Orchestrator.ServiceBus
 {
     // Register as singleton to allow for caching of queueClients
     public interface IServiceBus
