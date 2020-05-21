@@ -39,7 +39,6 @@ namespace Scheduling.Orchestrator
             using (host)
             {
                 // Start scheduler: it will continuously monitor and look for jobs that need to be executed
-                // Need to set up a customized IJobFactory in order to use the service container so that the IJob implementations can leverage DI
                 var jobHost = host.Services.GetService(typeof(IJobHost)) as JobHost;
                 await jobHost.CallAsync("InitiateScheduler");
 
