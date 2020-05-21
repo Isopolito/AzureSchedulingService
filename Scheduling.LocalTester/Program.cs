@@ -39,6 +39,7 @@ namespace Scheduling.LocalTester
                 ServiceAddressFetcher = () => configuration["SchedulingBaseUrl"],
                 FunctionKeys = new FunctionKeys
                 {
+                    // Note function keys are not needed when running local
                     GetJob = configuration["GetJobFuncKey"],
                     AddOrUpdateJob = configuration["AddOrUpdateJobFuncKey"],
                     DeleteJob = configuration["DeleteJobFuncKey"],
