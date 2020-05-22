@@ -27,7 +27,7 @@ namespace Scheduling.Orchestrator
                     services.AddSingleton<IServiceBus, ServiceBus.ServiceBus>();
 
                     services.AddTransient<IScheduledJobExecutor, ScheduledJobExecutor>(); // Important that this is transient scoped
-                    services.AddSchedulingEngine(); // Needs to registered after IScheduledJobExecutor is already in IoC container
+                    services.AddSchedulingEngine(); // Needs to be registered after IScheduledJobExecutor is already in IoC container
                 })
                 .ConfigureWebJobs(b =>
                 {

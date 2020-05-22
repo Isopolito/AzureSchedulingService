@@ -84,10 +84,12 @@ namespace Scheduling.LocalTester
 | *************************************************************************************************|
 | Enter one of the following keys to test the scheduler:                                           |
 | *************************************************************************************************|
-| a - Add or Update a job (will start in 1 minute and will only every minute)                      |
+| a - Add or Update a job (will start in 1 minute and will run every minute)                       |
 | d - Delete a job                                                                                 |
 | g - Get a job                                                                                    |
 | l - Load test by calling Add Or Update X number of times                                         |
+| p - pause an existing job                                                                        |
+| r - resume an existing  job                                                                      |
 | q - Quit                                                                                         |
 | -------------------------------------------------------------------------------------------------|
 ");
@@ -121,8 +123,10 @@ namespace Scheduling.LocalTester
                                 {
                                     job = new Job(subscriptionName, jobIdentifier, "tester");
                                     job.Update("testing domain", DateTime.Now.AddMinutes(1), null, RepeatEndStrategy.NotUsed, RepeatInterval.NotUsed, numberOfRuns, "test", "0 * * ? * *");
+                                    job.SetActivationStatus(true, "tester");
                                     await apiService.AddOrUpdateJob(job);
                                 }
+
                                 break;
                             case 'd':
                             case 'D':
@@ -153,10 +157,27 @@ namespace Scheduling.LocalTester
                                     {
                                         job = new Job(subscriptionName, $"{jobIdentifier}-{numberOfCalls--}", "tester");
                                         job.Update($"load testing domain - {numberOfCalls}", DateTime.Now.AddMinutes(1), null, RepeatEndStrategy.NotUsed, RepeatInterval.NotUsed, 0, "load test");
+                                        job.SetActivationStatus(true, "load tester");
                                         await apiService.AddOrUpdateJob(job);
                                     }
                                 }
 
+                                break;
+                            case 'p':
+                            case 'P':
+                                Console.Write("[PAUSE] Enter Job Identifier: ");
+                                jobIdentifier = Console.ReadLine();
+                                job = await apiService.GetJob(new JobLocator(subscriptionName, jobIdentifier));
+                                job.SetActivationStatus(false, "tester pause");
+                                await apiService.AddOrUpdateJob(job);
+                                break;
+                            case 'r':
+                            case 'R':
+                                Console.Write("[RESUME] Enter Job Identifier: ");
+                                jobIdentifier = Console.ReadLine();
+                                job = await apiService.GetJob(new JobLocator(subscriptionName, jobIdentifier));
+                                job.SetActivationStatus(true, "tester resume");
+                                await apiService.AddOrUpdateJob(job);
                                 break;
                         }
                     }

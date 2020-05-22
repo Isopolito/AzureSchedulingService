@@ -39,7 +39,7 @@ namespace Scheduling.Api.AzureFunctions
 
                 if (await jobMetaDataRepo.AddOrUpdate(job, ct))
                 {
-                    return new Message(Encoding.UTF8.GetBytes((JsonConvert.SerializeObject(job))));
+                    return new Message(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(job)));
                 }
             }
             catch (Exception e)

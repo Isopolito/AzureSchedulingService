@@ -70,7 +70,7 @@ namespace Scheduling.Engine.Scheduling
             }
 
             await RemoveJobIfAlreadyExists(job.JobIdentifier, job.SubscriptionName, ct);
-            await scheduler.ScheduleJob(jobResult.Value, triggerResult.Value, false, ct);
+            if (job.IsActive) await scheduler.ScheduleJob(jobResult.Value, triggerResult.Value, false, ct);
         }
 
         private async Task RemoveJobIfAlreadyExists(string jobIdentifier, string subscriptionName, CancellationToken ct)
