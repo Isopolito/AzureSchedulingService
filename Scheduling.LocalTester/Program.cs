@@ -57,7 +57,7 @@ namespace Scheduling.LocalTester
 
         private static async Task ProcessMessagesAsync(Message message, CancellationToken ct)
         {
-            Console.WriteLine($"Received Execute Job message: SequenceNumber:{message.SystemProperties.SequenceNumber} Body:{Encoding.UTF8.GetString(message.Body)}");
+            Console.WriteLine($"Received Execute Job message: SequenceNumber:{message.SystemProperties.SequenceNumber} Body:{Encoding.UTF8.GetString(message.Body)}\n");
         }
 
         // Use this handler to examine the exceptions received on the message pump.
@@ -84,12 +84,14 @@ namespace Scheduling.LocalTester
 | *************************************************************************************************|
 | Enter one of the following keys to test the scheduler:                                           |
 | *************************************************************************************************|
-| a - Add or Update a job (will be scheduled 1 minute into the future and will only run once)      |
+| a - Add or Update a job (will start in 1 minute and will only every minute)                      |
 | d - Delete a job                                                                                 |
-| g - get a job                                                                                    |
-| q - quit                                                                                         |
+| g - Get a job                                                                                    |
+| l - Load test by calling Add Or Update X number of times                                         |
+| q - Quit                                                                                         |
 | -------------------------------------------------------------------------------------------------|
 ");
+            // TODO: Right now this is quick and dirty, it could be refactored and enhanced in many ways
             await Task.Run(async () =>
             {
                 while (true)
@@ -109,9 +111,18 @@ namespace Scheduling.LocalTester
                             case 'A':
                                 Console.Write("[UPSERT] Enter Job Identifier: ");
                                 jobIdentifier = Console.ReadLine();
-                                job = new Job(subscriptionName, jobIdentifier, "tester");
-                                job.Update("testing domain", DateTime.Now.AddMinutes(1), null, RepeatEndStrategy.NotUsed, RepeatInterval.NotUsed, 0, "test");
-                                await apiService.AddOrUpdateJob(job);
+                                Console.Write("[UPSERT] How many times to run?: ");
+                                var numberOfTimesToRunInput = Console.ReadLine();
+                                if (!int.TryParse(numberOfTimesToRunInput, out var numberOfRuns) || numberOfRuns < 1)
+                                {
+                                    Console.WriteLine("[UPSERT] Must be a valid and positive integer. Aborting command");
+                                }
+                                else
+                                {
+                                    job = new Job(subscriptionName, jobIdentifier, "tester");
+                                    job.Update("testing domain", DateTime.Now.AddMinutes(1), null, RepeatEndStrategy.NotUsed, RepeatInterval.NotUsed, numberOfRuns, "test", "0 * * ? * *");
+                                    await apiService.AddOrUpdateJob(job);
+                                }
                                 break;
                             case 'd':
                             case 'D':
@@ -125,6 +136,27 @@ namespace Scheduling.LocalTester
                                 jobIdentifier = Console.ReadLine();
                                 job = await apiService.GetJob(new JobLocator(subscriptionName, jobIdentifier));
                                 Console.WriteLine($"Job: {(job == null ? "Does not exist" : JsonConvert.SerializeObject(job))}");
+                                break;
+                            case 'l':
+                            case 'L':
+                                Console.Write("[LOAD] Enter Base for Identifier: ");
+                                jobIdentifier = Console.ReadLine();
+                                Console.Write("[LOAD] How many Add Or Update calls to make? ");
+                                var numberOfCallsInput = Console.ReadLine();
+                                if (!int.TryParse(numberOfCallsInput, out var numberOfCalls) || numberOfCalls < 1)
+                                {
+                                    Console.WriteLine("[LOAD] Must be a valid and positive integer. Aborting command");
+                                }
+                                else
+                                {
+                                    while (numberOfCalls > 0)
+                                    {
+                                        job = new Job(subscriptionName, $"{jobIdentifier}-{numberOfCalls--}", "tester");
+                                        job.Update($"load testing domain - {numberOfCalls}", DateTime.Now.AddMinutes(1), null, RepeatEndStrategy.NotUsed, RepeatInterval.NotUsed, 0, "load test");
+                                        await apiService.AddOrUpdateJob(job);
+                                    }
+                                }
+
                                 break;
                         }
                     }

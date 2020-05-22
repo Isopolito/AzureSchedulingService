@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Scheduling.DataAccess.Repositories;
@@ -21,18 +22,27 @@ namespace Scheduling.Orchestrator
             this.logger = logger;
         }
 
-        public async Task Execute(JobLocator jobLocator)
+        public async Task Execute(JobLocator jobLocator, bool jobIsCompleted)
         {
-            var job = await jobMetaDataRepo.Get(jobLocator);
-            if (job == null)
+            try
             {
-                logger.LogError($"Job meta data could not be found for SubscriptionName {jobLocator.SubscriptionName} and JobIdentifier {jobLocator.JobIdentifier}. " +
-                                "This should never happen, probably means there's a bug in the scheduler or somebody has manually messed with the scheduling DB");
-                return;
-            }
+                var job = await jobMetaDataRepo.Get(jobLocator);
+                if (job == null)
+                {
+                    logger.LogError($"Job meta data could not be found for SubscriptionName {jobLocator.SubscriptionName} and JobIdentifier {jobLocator.JobIdentifier}. " +
+                                    "This should never happen, probably means there's a bug in the scheduler or somebody has manually messed with the scheduling DB");
+                    return;
+                }
 
-            await serviceBus.EnsureSubscriptionIsSetup(jobLocator.SubscriptionName);
-            await serviceBus.PublishEventToTopic(jobLocator.SubscriptionName, JsonConvert.SerializeObject(job));
+                await serviceBus.EnsureSubscriptionIsSetup(jobLocator.SubscriptionName);
+                await serviceBus.PublishEventToTopic(jobLocator.SubscriptionName, JsonConvert.SerializeObject(job));
+
+                if (jobIsCompleted) await jobMetaDataRepo.Delete(jobLocator);
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, $"Error in JobExecute logic");
+            }
         }
     }
 }

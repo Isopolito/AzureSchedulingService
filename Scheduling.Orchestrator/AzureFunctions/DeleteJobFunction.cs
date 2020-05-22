@@ -21,20 +21,43 @@ namespace Scheduling.Orchestrator.AzureFunctions
             this.schedulingActions = schedulingActions;
         }
 
-        // TODO: Handle dead letters
-        public async Task DeleteJob([ServiceBusTrigger(MessageQueueNames.Delete)] Message message, ILogger logger, CancellationToken ct)
+        public async Task DeleteJob([ServiceBusTrigger(MessageQueueNames.Delete)]
+                                    Message message, ILogger logger, CancellationToken ct)
         {
-            string body = null;
             try
             {
-                body = Encoding.UTF8.GetString(message.Body);
-                var job = JsonConvert.DeserializeObject<JobLocator>(body);
-                await schedulingActions.DeleteJob(job, ct);
+                await Delete(message, ct);
             }
             catch (Exception e)
             {
-                logger.LogError(e, $"Unable to delete job. Message: {body}");
+                logger.LogError(e, $"Unable to delete job. Message: {message.Body}");
             }
+        }
+
+        public async Task DeleteFunctionDeadLetter([ServiceBusTrigger(MessageQueueNames.Delete + "/$DeadLetterQueue")]
+                                                   Message message,
+                                                   ILogger logger,
+                                                   CancellationToken ct)
+        {
+            try
+            {
+                logger.LogInformation($"Processing dead letter in {GetType().Name}. Message body: {Encoding.UTF8.GetString(message.Body)}");
+                var spanInMinutes = (DateTime.Now - message.ScheduledEnqueueTimeUtc).TotalMinutes;
+                if (spanInMinutes > 15) return; // Ignore dead letter messages that have been sitting for longer than 15 minutes
+
+                await Delete(message, ct);
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, $"Unable to add or update job. Message: {message.Body}");
+            }
+        }
+
+        private async Task Delete(Message message, CancellationToken ct)
+        {
+            var body = Encoding.UTF8.GetString(message.Body);
+            var job = JsonConvert.DeserializeObject<JobLocator>(body);
+            await schedulingActions.DeleteJob(job, ct);
         }
     }
 }

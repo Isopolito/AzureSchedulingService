@@ -8,6 +8,6 @@ namespace Scheduling.Engine.Jobs
     /// </summary>
     public interface IScheduledJobExecutor
     {
-        Task Execute(JobLocator jobLocator);
+        Task Execute(JobLocator jobLocator, bool jobIsCompleted);
     }
 }

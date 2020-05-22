@@ -42,8 +42,9 @@ namespace Scheduling.Engine.Jobs.Services
                     {
                         trigger.EndAt(job.EndAt);
                     }
-                    else if (job.RepeatEndStrategy == RepeatEndStrategy.AfterOccurrenceNumber && job.RepeatOccurrenceNumber > 0)
+                    else if (job.RepeatOccurrenceNumber > 0)
                     {
+                        // Quartz expression override can you this too...
                         // the trigger must first be built in order to calculate end date from repeat count 
                         var builtTrigger = trigger.Build();
                         var endDate = TriggerUtils.ComputeEndTimeToAllowParticularNumberOfFirings(builtTrigger as IOperableTrigger, null, job.RepeatOccurrenceNumber);
@@ -73,7 +74,7 @@ namespace Scheduling.Engine.Jobs.Services
             // Certain scheduling requirements may require multiple cron expressions, which means multiple triggers for a job
             var cronExpressions = cronExpressionGenerator.Create(job);
             return cronExpressions.Select((cronExpression, idx) => TriggerBuilder.Create()
-                    .WithIdentity($"{job.JobIdentifier}-{idx}", job.JobIdentifier)
+                    .WithIdentity($"{job.JobIdentifier}-{idx}", job.SubscriptionName)
                     .WithCronSchedule(cronExpression)
                     .StartAt(job.StartAt))
                 .ToList()

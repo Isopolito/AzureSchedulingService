@@ -26,7 +26,9 @@ namespace Scheduling.Engine.Jobs
                 var dataMap = context.JobDetail.JobDataMap;
                 subscriptionName = dataMap.GetString(SchedulingConstants.SubscriptionName);
                 jobIdentifier = dataMap.GetString(SchedulingConstants.JobIdentifier);
-                await executor.Execute(new JobLocator(subscriptionName, jobIdentifier));
+
+                var jobIsCompleted = context.NextFireTimeUtc == null;
+                await executor.Execute(new JobLocator(subscriptionName, jobIdentifier), jobIsCompleted);
             }
             catch (Exception e)
             {

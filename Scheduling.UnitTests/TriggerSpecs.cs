@@ -5,6 +5,7 @@ using NUnit.Framework;
 using Scheduling.Engine.Extensions;
 using Scheduling.Engine.Jobs.Services;
 using Scheduling.SharedPackage.Enums;
+using Scheduling.SharedPackage.Extensions;
 using Scheduling.SharedPackage.Models;
 
 namespace Scheduling.UnitTests
@@ -105,7 +106,7 @@ namespace Scheduling.UnitTests
         }
 
         [Test]
-        public void Repeat_Occurrence_Should_Result_In_Correct_EndDate()
+        public void Repeat_Occurrence_Should_Result_In_Correct_EndDate_With_Human_Friendly()
         {
             var job = DefaultJob;
             job.Update(null, Convert.ToDateTime("5/5/2020"), null, RepeatEndStrategy.AfterOccurrenceNumber, RepeatInterval.Monthly, 12, "test");
@@ -116,14 +117,27 @@ namespace Scheduling.UnitTests
         }
 
         [Test]
+        public void Repeat_Occurrence_Should_Result_In_Correct_EndDate_With_Cron_Expression()
+        {
+            var job = DefaultJob;
+            job.Update(null, new DateTime(2020, 5, 5, 5, 0, 0), null, RepeatEndStrategy.NotUsed, RepeatInterval.NotUsed, 12, "test", "0 * * ? * *");
+
+            var triggers = scheduledJobBuilder.BuildTriggers(job).Value;
+
+            // Expected once every minute for 12 runs, so end date 12 minutes from start date
+            var expectedDateTime = new DateTime(2020, 5, 5, 5, 11, 0).ToUniversalTime();
+            triggers[0].EndTimeUtc.Value.DateTime.IsEqualToTheMinute(expectedDateTime).Should().BeTrue();
+        }
+
+        [Test]
         public void Trigger_Identity_Should_Be_SubscriptionName_And_JobId()
         {
             var job = DefaultJob;
             job.Update(null, DateTime.Now.AddHours(1), null, RepeatEndStrategy.Never, RepeatInterval.Never, 0, "test");
 
             var trigger = scheduledJobBuilder
-                .BuildTriggers(job)
-                .Value[0] as Quartz.Impl.Triggers.SimpleTriggerImpl;
+                              .BuildTriggers(job)
+                              .Value[0] as Quartz.Impl.Triggers.SimpleTriggerImpl;
 
             trigger.Name.Should().Be(job.JobIdentifier);
             trigger.Group.Should().Be(job.SubscriptionName);
@@ -160,7 +174,8 @@ namespace Scheduling.UnitTests
 
             act.Should()
                 .Throw<ArgumentException>()
-                .WithMessage("It makes no sense to have an EndDate that's before the StartDate");        }
+                .WithMessage("It makes no sense to have an EndDate that's before the StartDate");
+        }
 
         [Test]
         public void Throw_Exception_If_RepeatCount_Is_Negative_If_Repeat_Interval_Is_After_Occurrence()
