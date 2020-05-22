@@ -5,12 +5,12 @@ A domain agnostic scheduling service using azure cloud technologies and quartz.n
 This is a POC that has only been minimally tested in a local environment, rigourous testing and searching for edge cases is required to be production ready. Also logging and health checks have not been implemented yet.
 
 ## High Level Overview
-The service recieves HTTP requests to: add/update, delete, or retrieve a scheduled job. When a job is ready to run, a message is published to a topic / subscription. The subscription name is set when the job is initially created. Each job that is scheduled has a `JobIdentifier` that is unique within the context of a subscription. This allows the service to be domain agnostic because it is the reponsibility of the consumers to use that job identitier to track the data needed to actually do work.
+The service receives HTTP requests to: add/update, delete, or retrieve a scheduled job. When a job is ready to run, a message is published to a topic / subscription. The subscription name is set when the job is initially created. Each job that is scheduled has a `JobIdentifier` that is unique within the context of a subscription. This allows the service to be domain agnostic because it is the responsibility of the consumers to use that job identifier to track the data needed to actually do work.
 
 ## Solution Breakdown
 
 ### Scheduling.Engine
-This houses the logic for doing the actual scheduling, currently it uses the [quartz.net engine](https://github.com/quartznet/quartznet). It also handles tasks like converting a Job's schedule (`Job` from the shared package) to a cron epxression, building quartz.net triggers, etc. Aside from the unit tests, the rest of the application only interacts with the engine via ISchedulingActions. This provides the ability to start the scheduling engine, and to upsert or delete a quartz.net job.
+This houses the logic for doing the actual scheduling, currently it uses the [quartz.net engine](https://github.com/quartznet/quartznet). It also handles tasks like converting a Job's schedule (`Job` from the shared package) to a cron expression, building quartz.net triggers, etc. Aside from the unit tests, the rest of the application only interacts with the engine via ISchedulingActions. This provides the ability to start the scheduling engine, and to upsert or delete a quartz.net job.
 
 ### Scheduling.DataAccess
 A requirement for this project was using Entity Framework to create the required database tables and to provide CRUD access to non-quartz related data that requires persisting. EF is overkill and Dapper or some other micro-ORM would be fine. Quartz.net requires a DB to persist jobs past the lifetime of a process. However, it handles all the interactions with those tables behind the scenes. So as far as quartz goes, this project only creates the tables the library needs. 
@@ -26,7 +26,7 @@ This project requires an appsettings.json with the following shape. Change the v
   "TopicName": "scheduling-execute",
   "AzureWebJobsServiceBus": "service bus conn string",
   "ConnectionStrings": {
-    "SchedulingConnString": "DB conn string that the database that the data access logic uses"
+    "SchedulingConnString": "DB conn string for the database that the data access logic uses"
   },
   "Host": {
     "LocalHttpPort": 7071,
@@ -43,7 +43,7 @@ This project requires an appsettings.json with the following shape. Change the v
     "quartz.jobStore.useProperties": "true",
     "quartz.jobStore.dataSource": "default",
     "quartz.jobStore.lockHandler.type": "Quartz.Impl.AdoJobStore.UpdateLockRowSemaphore, Quartz",
-    "quartz.dataSource.default.connectionString": "DB conn string that the database that the data access logic uses",
+    "quartz.dataSource.default.connectionString": "DB conn string for the database that the data access logic uses",
     "quartz.dataSource.default.provider": "SqlServer",
     "quartz.serializer.type": "json",
     "quartz.jobStore.tablePrefix": "scheduling.quartz_"
@@ -60,7 +60,7 @@ A local.settings.json file is required with the following shape:
   "Values": {
     "ServiceBusConnectionString": "Azure service bus connection string",
     "StorageConnectionString": "Azure storage connection string",
-    "SchedulingConnString": "DB conn string that the database that the data access logic uses",
+    "SchedulingConnString": "DB conn string for the database that the data access logic uses",
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
     "FUNCTIONS_WORKER_RUNTIME": "dotnet",
     "Environment": "Local"
@@ -72,7 +72,7 @@ A local.settings.json file is required with the following shape:
 Holds models, constants, etc shared throughout the service. Also provides a way for the outside world to interact with this service via the logic in `ISchedulingApiService`. This project can be deployed as a nuget package. That nuget package can be pulled in and used in other code bases in order to easily facilitate communication with the Scheduling.Api
 
 ### Scheduling.LocalTester
-This project acts as an integration test for all the components that make up the scheduling service. It does this by providing a console app to schedule / delete / fetch jobs. It also can be used an an example of how to wire up the logic in the shared package.
+This project acts as an integration test for all the components that make up the scheduling service. It does this by providing a console app to schedule / delete / fetch jobs. It also can be used an example of how to wire up the logic in the shared package.
 
 It requires an appsettings.json file with the following shape, again values can be changed as needed:
 
@@ -94,9 +94,9 @@ It requires an appsettings.json file with the following shape, again values can 
 Tests the Scheduling.Engine related logic
 
 ## Usage
-To run locally, start Scheduling.Orchestrator, Scheduling.Api, and Scheduling.LocalTester. Use the console app in LocalTester to verify everything is working correctly. To add/update migrations from visual studio, select the Orchestrator as the project to run (or optionally just specifiy `-s Scheduling.Orchestrator` after the EF commands), and from within the Package Manager Console window, select the DataAccess project.
+To run locally, start Scheduling.Orchestrator, Scheduling.Api, and Scheduling.LocalTester. Use the console app in LocalTester to verify everything is working correctly. To add/update migrations from visual studio, select the Orchestrator as the project to run (or optionally just specific `-s Scheduling.Orchestrator` after the EF commands), and from within the Package Manager Console window, select the DataAccess project.
 
 ## Notes
-* It wouldn't take a lot of work to use this service without azure. The azure functions in Scheduling.Api could be replaced with an MVC controller. The Scheudling.Orchestrator would function the same using any messaging technology that supports the equivalent of the azure topic pub/sub pattern.
+* It wouldn't take a lot of work to use this service without azure. The azure functions in Scheduling.Api could be replaced with an MVC controller. The Scheduling.Orchestrator would function the same using any messaging technology that supports the equivalent of the azure topic pub/sub pattern.
 
 * The Scheduling.DataAccess project is cross-cutting between the Orchestrator and the Api. If there was a need to split Scheduling.Api and Scheduling.Orchestrator projects into their own microservices, Scheduling.Api could house the Scheudling.DataAccess project and expose the functionality of `IJobMetaDataRepository` through its api. Orchestrator could then call Scheduling.Api for JobMetaData crud instead of referencing Scheduling.DataAcess directly
