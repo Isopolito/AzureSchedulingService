@@ -16,11 +16,11 @@ namespace Scheduling.Api.AzureFunctions
 {
     public class DeleteJobFunction
     {
-        private readonly IJobMetaDataRepository jobMetaDataRepo;
+        private readonly IJobRepository jobRepo;
 
-        public DeleteJobFunction(IJobMetaDataRepository jobMetaDataRepo)
+        public DeleteJobFunction(IJobRepository jobRepo)
         {
-            this.jobMetaDataRepo = jobMetaDataRepo;
+            this.jobRepo = jobRepo;
         }
 
         [FunctionName("DeleteJob")]
@@ -34,10 +34,10 @@ namespace Scheduling.Api.AzureFunctions
         {
             try
             {
-                var jobLocator = new JobLocator(subscriptionName, jobIdentifier);
-                if (await jobMetaDataRepo.Delete(jobLocator, ct))
+                if (await jobRepo.Delete(subscriptionName, jobIdentifier, ct))
                 {
-                    return new Message(Encoding.UTF8.GetBytes((JsonConvert.SerializeObject(jobLocator))));
+                    return new Message(Encoding.UTF8.GetBytes(
+                        JsonConvert.SerializeObject(new JobLocator(subscriptionName, jobIdentifier))));
                 }
             }
             catch (Exception e)

@@ -12,13 +12,13 @@ namespace Scheduling.Orchestrator
     public class ScheduledJobExecutor : IScheduledJobExecutor
     {
         private readonly IServiceBus serviceBus;
-        private readonly IJobMetaDataRepository jobMetaDataRepo;
+        private readonly IJobRepository jobRepo;
         private readonly ILogger<ScheduledJobExecutor> logger;
 
-        public ScheduledJobExecutor(IServiceBus serviceBus, IJobMetaDataRepository jobMetaDataRepo, ILogger<ScheduledJobExecutor> logger)
+        public ScheduledJobExecutor(IServiceBus serviceBus, IJobRepository jobRepo, ILogger<ScheduledJobExecutor> logger)
         {
             this.serviceBus = serviceBus;
-            this.jobMetaDataRepo = jobMetaDataRepo;
+            this.jobRepo = jobRepo;
             this.logger = logger;
         }
 
@@ -26,7 +26,7 @@ namespace Scheduling.Orchestrator
         {
             try
             {
-                var job = await jobMetaDataRepo.Get(jobLocator);
+                var job = await jobRepo.Get(jobLocator.SubscriptionName, jobLocator.JobIdentifier);
                 if (job == null)
                 {
                     logger.LogError($"Job meta data could not be found for SubscriptionName {jobLocator.SubscriptionName} and JobIdentifier {jobLocator.JobIdentifier}. " +
@@ -37,7 +37,7 @@ namespace Scheduling.Orchestrator
                 await serviceBus.EnsureSubscriptionIsSetup(jobLocator.SubscriptionName);
                 await serviceBus.PublishEventToTopic(jobLocator.SubscriptionName, JsonConvert.SerializeObject(job));
 
-                if (jobIsCompleted) await jobMetaDataRepo.Delete(jobLocator);
+                if (jobIsCompleted) await jobRepo.Delete(jobLocator.SubscriptionName, jobLocator.JobIdentifier);
             }
             catch (Exception e)
             {

@@ -9,6 +9,8 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using Scheduling.Api.AutoMapper;
+using Scheduling.DataAccess.Dto;
 using Scheduling.DataAccess.Repositories;
 using Scheduling.SharedPackage.Constants;
 using Scheduling.SharedPackage.Models;
@@ -17,11 +19,11 @@ namespace Scheduling.Api.AzureFunctions
 {
     public class AddOrUpdateJobFunction
     {
-        private readonly IJobMetaDataRepository jobMetaDataRepo;
+        private readonly IJobRepository jobRepo;
 
-        public AddOrUpdateJobFunction(IJobMetaDataRepository jobMetaDataRepo)
+        public AddOrUpdateJobFunction(IJobRepository jobRepo)
         {
-            this.jobMetaDataRepo = jobMetaDataRepo;
+            this.jobRepo = jobRepo;
         }
 
         [FunctionName("AddOrUpdateJob")]
@@ -37,7 +39,8 @@ namespace Scheduling.Api.AzureFunctions
                 requestBody = await new StreamReader(req.Body).ReadToEndAsync();
                 var job = JsonConvert.DeserializeObject<Job>(requestBody);
 
-                if (await jobMetaDataRepo.AddOrUpdate(job, ct))
+                var jobDto = Mapping.Mapper.Map<Job, JobDto>(job);
+                if (await jobRepo.AddOrUpdate(jobDto, ct))
                 {
                     return new Message(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(job)));
                 }

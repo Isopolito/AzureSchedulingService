@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
+using Scheduling.Api.AutoMapper;
+using Scheduling.DataAccess.Dto;
 using Scheduling.DataAccess.Repositories;
 using Scheduling.SharedPackage.Models;
 
@@ -12,11 +14,11 @@ namespace Scheduling.Api.AzureFunctions
 {
     public class GetJobFunction
     {
-        private readonly IJobMetaDataRepository jobMetaDataRepo;
+        private readonly IJobRepository jobRepo;
 
-        public GetJobFunction(IJobMetaDataRepository jobMetaDataRepo)
+        public GetJobFunction(IJobRepository jobRepo)
         {
-            this.jobMetaDataRepo = jobMetaDataRepo;
+            this.jobRepo = jobRepo;
         }
 
         [FunctionName("GetJob")]
@@ -29,8 +31,10 @@ namespace Scheduling.Api.AzureFunctions
         {
             try
             {
-                var jobLocator = new JobLocator(subscriptionName, jobIdentifier);
-                return await jobMetaDataRepo.Get(jobLocator, ct);
+                var jobDto = await jobRepo.Get(subscriptionName, jobIdentifier, ct);
+                return jobDto == null
+                           ? null
+                           : Mapping.Mapper.Map<JobDto, Job>(jobDto);
             }
             catch (Exception e)
             {

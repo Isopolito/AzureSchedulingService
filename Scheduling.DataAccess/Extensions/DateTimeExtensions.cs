@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Scheduling.SharedPackage.Extensions
+namespace Scheduling.DataAccess.Extensions
 {
     public static class DateTimeExtensions
     {

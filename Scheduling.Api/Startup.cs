@@ -21,7 +21,8 @@ namespace Scheduling.Api
                 .Build();
 
             var connString = config["SchedulingConnString"];
-            builder.Services.AddSchedulingDataAccess(connString);
+            builder.Services
+                .AddSchedulingDataAccess(connString);
         }
     }
 }

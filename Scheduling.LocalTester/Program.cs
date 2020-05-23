@@ -88,8 +88,8 @@ namespace Scheduling.LocalTester
 | d - Delete a job                                                                                 |
 | g - Get a job                                                                                    |
 | l - Load test by calling Add Or Update X number of times                                         |
-| p - pause an existing job                                                                        |
-| r - resume an existing  job                                                                      |
+| p - Pause an existing job                                                                        |
+| r - Resume an existing job                                                                       |
 | q - Quit                                                                                         |
 | -------------------------------------------------------------------------------------------------|
 ");

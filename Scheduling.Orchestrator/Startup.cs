@@ -23,9 +23,8 @@ namespace Scheduling.Orchestrator
                 .ConfigureServices((hostContext, services) =>
                 {
                     services.AddLogging();
-                    services.AddSchedulingDataAccess(hostContext.Configuration.GetConnectionStringOrSetting("SchedulingConnString"));
                     services.AddSingleton<IServiceBus, ServiceBus.ServiceBus>();
-
+                    services.AddSchedulingDataAccess(hostContext.Configuration.GetConnectionStringOrSetting("SchedulingConnString"));
                     services.AddTransient<IScheduledJobExecutor, ScheduledJobExecutor>(); // Important that this is transient scoped
                     services.AddSchedulingEngine(); // Needs to be registered after IScheduledJobExecutor is already in IoC container
                 })

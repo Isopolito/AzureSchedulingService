@@ -5,7 +5,6 @@ using NUnit.Framework;
 using Scheduling.Engine.Extensions;
 using Scheduling.Engine.Jobs.Services;
 using Scheduling.SharedPackage.Enums;
-using Scheduling.SharedPackage.Extensions;
 using Scheduling.SharedPackage.Models;
 
 namespace Scheduling.UnitTests
@@ -126,7 +125,7 @@ namespace Scheduling.UnitTests
 
             // Expected once every minute for 12 runs, so end date 12 minutes from start date
             var expectedDateTime = new DateTime(2020, 5, 5, 5, 11, 0).ToUniversalTime();
-            triggers[0].EndTimeUtc.Value.DateTime.IsEqualToTheMinute(expectedDateTime).Should().BeTrue();
+            triggers[0].EndTimeUtc.Value.Should().BeCloseTo(expectedDateTime, 1000);
         }
 
         [Test]
