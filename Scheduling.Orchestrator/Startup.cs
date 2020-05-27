@@ -15,12 +15,21 @@ namespace Scheduling.Orchestrator
     // NOTE: This webjob could just as well be an IHostedService if that better suites your needs
     public class Startup
     {
-        // TODO: Get health checks in place
-        // TODO: Get Application Insights in place
-        // TODO: Get Loggly in place
         public static async Task Main(string[] args)
         {
             var host = new HostBuilder()
+                .ConfigureAppConfiguration((hostContext, config) =>
+                {
+                    var conf = new ConfigurationBuilder()
+                        .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true).Build();
+                    config.AddConfiguration(conf);
+                    config.AddEnvironmentVariables();
+                })
+                .ConfigureWebJobs(b =>
+                {
+                    b.AddAzureStorageCoreServices();
+                    b.AddServiceBus();
+                })
                 .ConfigureServices((hostContext, services) =>
                 {
                     services.AddLogging();
@@ -29,19 +38,13 @@ namespace Scheduling.Orchestrator
                     services.AddTransient<IScheduledJobExecutor, ScheduledJobExecutor>(); // Important that this is transient scoped
                     services.AddSchedulingEngine(); // Needs to be registered after IScheduledJobExecutor is already in IoC container
                 })
-                .ConfigureWebJobs(b =>
-                {
-                    b.AddAzureStorageCoreServices();
-                    b.AddServiceBus();
-                })
                 .ConfigureLogging((context, b) =>
                 {
-                    b.SetMinimumLevel(LogLevel.Debug);
+                    b.SetMinimumLevel(LogLevel.Information);
                     b.AddConsole();
 
-                    // If this key exists in any config, use it to enable App Insights
                     var appInsightsKey = context.Configuration["ApplicationInsights:InstrumentationKey"];
-                    if (appInsightsKey.HasValue()) b.AddApplicationInsights(appInsightsKey);
+                    if (appInsightsKey.HasValue()) b.AddApplicationInsightsWebJobs(o => o.InstrumentationKey = appInsightsKey);
                 })
                 .Build();
 

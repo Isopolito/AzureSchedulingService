@@ -15,10 +15,12 @@ namespace Scheduling.Orchestrator.AzureFunctions
     public class AddOrUpdateFunction
     {
         private readonly ISchedulingActions schedulingActions;
+        private readonly ILogger<AddOrUpdateFunction> logger;
 
-        public AddOrUpdateFunction(ISchedulingActions schedulingActions)
+        public AddOrUpdateFunction(ISchedulingActions schedulingActions, ILogger<AddOrUpdateFunction> logger)
         {
             this.schedulingActions = schedulingActions;
+            this.logger = logger;
         }
 
         public async Task AddOrUpdateJob([ServiceBusTrigger(MessageQueueNames.AddOrUpdate)]
