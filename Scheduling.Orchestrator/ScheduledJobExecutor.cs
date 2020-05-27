@@ -41,7 +41,7 @@ namespace Scheduling.Orchestrator
             }
             catch (Exception e)
             {
-                logger.LogError(e, $"Error in JobExecute logic");
+                logger.LogError(e, "Error in JobExecute logic");
             }
         }
     }

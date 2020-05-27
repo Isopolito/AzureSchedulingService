@@ -7,9 +7,6 @@ using Scheduling.DataAccess.Extensions;
 [assembly: FunctionsStartup(typeof(Startup))]
 namespace Scheduling.Api
 {
-    // TODO: Get health checks in place
-    // TODO: Get Application Insights in place
-    // TODO: Get Loggly in place
     public class Startup : FunctionsStartup
     {
         public override void Configure(IFunctionsHostBuilder builder)

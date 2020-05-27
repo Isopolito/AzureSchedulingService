@@ -8,6 +8,7 @@ using Scheduling.DataAccess.Extensions;
 using Scheduling.Engine.Extensions;
 using Scheduling.Engine.Jobs;
 using Scheduling.Orchestrator.ServiceBus;
+using Scheduling.SharedPackage.Extensions;
 
 namespace Scheduling.Orchestrator
 {
@@ -33,7 +34,15 @@ namespace Scheduling.Orchestrator
                     b.AddAzureStorageCoreServices();
                     b.AddServiceBus();
                 })
-                .ConfigureLogging((context, b) => { b.AddConsole(); })
+                .ConfigureLogging((context, b) =>
+                {
+                    b.SetMinimumLevel(LogLevel.Debug);
+                    b.AddConsole();
+
+                    // If this key exists in any config, use it to enable App Insights
+                    var appInsightsKey = context.Configuration["ApplicationInsights:InstrumentationKey"];
+                    if (appInsightsKey.HasValue()) b.AddApplicationInsights(appInsightsKey);
+                })
                 .Build();
 
             using (host)
