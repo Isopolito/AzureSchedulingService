@@ -94,7 +94,7 @@ It requires an appsettings.json file with the following shape, again values can 
 Tests the Scheduling.Engine related logic
 
 ## Usage
-To run locally, start Scheduling.Orchestrator, Scheduling.Api, and Scheduling.LocalTester. Use the console app in LocalTester to verify everything is working correctly. To add/update migrations from visual studio, select the Orchestrator as the project to run (or optionally just specific `-s Scheduling.Orchestrator` after the EF commands), and from within the Package Manager Console window, select the DataAccess project.
+To run locally, start Scheduling.Orchestrator, Scheduling.Api, and Scheduling.LocalTester. Use the console app in LocalTester to verify everything is working correctly. To add/update migrations from visual studio, select the Orchestrator as the project to run (or optionally just specify `-s Scheduling.Orchestrator` after the EF commands), and from within the Package Manager Console window, select the DataAccess project.
 
 ## Notes
 * It wouldn't take a lot of work to use this service without azure. The azure functions in Scheduling.Api could be replaced with an MVC controller. The Scheduling.Orchestrator would function the same using any messaging technology that supports the equivalent of the azure topic pub/sub pattern.
