@@ -2,7 +2,7 @@
 A domain agnostic scheduling service using azure cloud technologies and quartz.net
 
 ## Disclaimer
-This is a POC that has only been minimally tested in a local environment, rigourous testing and searching for edge cases is required to be production ready. Also logging and health checks have not been implemented yet.
+This is a POC. The production service this turned into has bug fixes and enhancements. 
 
 ## High Level Overview
 The service receives HTTP requests to: add/update, delete, or retrieve a scheduled job. When a job is ready to run, a message is published to a topic / subscription. The subscription name is set when the job is initially created. Each job that is scheduled has a `JobIdentifier` that is unique within the context of a subscription. This allows the service to be domain agnostic because it is the responsibility of the consumers to use that job identifier to track the data needed to actually do work.
